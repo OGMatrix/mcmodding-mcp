@@ -41,15 +41,23 @@ jobs:
           target-branch: prod
 
       - name: Log release-please output
+        env:
+          PR: ${{ steps.release.outputs.pr }}
+          RELEASE_CREATED: ${{ steps.release.outputs.release_created }}
+          VERSION: ${{ steps.release.outputs.version }}
+          TAG_NAME: ${{ steps.release.outputs.tag_name }}
         run: |
           echo "## Release Please Output" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ steps.release.outputs.pr }}" != "" ]]; then
-            echo "📋 **PR Created/Updated:** #${{ steps.release.outputs.pr }}" >> $GITHUB_STEP_SUMMARY
+          if [[ -n "$PR" ]]; then
+            # Try to extract number if it's JSON, otherwise use raw value
+            PR_NUMBER=$(echo "$PR" | jq -r .number 2>/dev/null || echo "$PR")
+            if [[ "$PR_NUMBER" == "null" ]]; then PR_NUMBER="$PR"; fi
+            echo "📋 **PR Created/Updated:** #$PR_NUMBER" >> $GITHUB_STEP_SUMMARY
           fi
-          if [[ "${{ steps.release.outputs.release_created }}" == "true" ]]; then
-            echo "🎉 **Release Created:** v${{ steps.release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-            echo "🏷️ **Tag:** ${{ steps.release.outputs.tag_name }}" >> $GITHUB_STEP_SUMMARY
+          if [[ "$RELEASE_CREATED" == "true" ]]; then
+            echo "🎉 **Release Created:** v$VERSION" >> $GITHUB_STEP_SUMMARY
+            echo "🏷️ **Tag:** $TAG_NAME" >> $GITHUB_STEP_SUMMARY
           else
             echo "ℹ️ No release created (PR pending merge to prod)" >> $GITHUB_STEP_SUMMARY
           fi
