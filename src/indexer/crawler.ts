@@ -357,8 +357,9 @@ export class DocumentCrawler {
    * Extract category from URL
    */
   private extractCategory(url: string): string {
-    // eslint-disable-next-line no-useless-escape
-    const match = url.match(/https?:\/\/[^\/]+\/(?:(?:\d+(?:\.\d+)*)\/)?(?:develop\/)?([^\/:]+)/);
+    const match = url.match(
+      /https?:\/\/[^/]+\/(?:.*\/)?(?:(?:\d+(?:\.\d+)*|develop)\/([^/]+)|([^/:\\s]+):)/
+    );
     if (match) {
       return match[1] || 'general';
     }
