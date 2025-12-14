@@ -64,9 +64,7 @@ jobs:
 
       - name: Publish to npm
         if: ${{ github.event.inputs.skip_npm != 'true' }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
+        run: npm publish --provenance --access public
 
       - name: Prepare database release artifacts
         run: |

@@ -1,0 +1,109 @@
+{
+  "name": "mcmodding-mcp",
+  "version": "0.1.0",
+  "description": "MCP server providing AI assistants with up-to-date Minecraft modding documentation for Fabric and NeoForge",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "mcmodding-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "data/*.db"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:prod": "npm run index-docs:prod && npm run build",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "test:ui": "vitest --ui",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky",
+    "index-docs": "npx tsx --expose-gc --max-old-space-size=6144 scripts/index-docs.ts -- --sitemap --embeddings",
+    "index-docs:prod": "npx tsx --expose-gc --max-old-space-size=6144 scripts/index-docs.ts -- --sitemap --embeddings --force",
+    "index-docs:no-embeddings": "npx tsx --expose-gc --max-old-space-size=4096 scripts/index-docs.ts -- --sitemap",
+    "clean": "rimraf dist",
+    "clean:all": "rimraf dist data",
+    "prebuild": "npm run clean",
+    "prebuild:prod": "npm run clean:all",
+    "postinstall": "node -e \"console.log('\\n✨ mcmodding-mcp installed successfully!\\n📚 Documentation index ready to use.\\n')\"",
+    "prepublishOnly": "npm run build:prod",
+    "release:auto": "semantic-release",
+    "release": "npm run build:prod && npm version",
+    "validate": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "db:manifest": "npx tsx scripts/generate-db-manifest.ts"
+  },
+  "keywords": [
+    "minecraft",
+    "modding",
+    "fabric",
+    "neoforge",
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "documentation"
+  ],
+  "author": "OGMatrix",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@xenova/transformers": "^2.17.2",
+    "better-sqlite3": "^11.7.0",
+    "cheerio": "^1.0.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.6.0",
+    "@commitlint/config-conventional": "^19.6.0",
+    "@eslint/js": "^9.15.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/jquery": "^3.5.33",
+    "@types/node": "^22.10.1",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
+    "@vitest/coverage-v8": "^4.0.15",
+    "@vitest/ui": "^4.0.15",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.11",
+    "prettier": "^3.3.3",
+    "rimraf": "^6.0.1",
+    "semantic-release": "^21.1.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.15.0",
+    "vitest": "^4.0.15"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OGMatrix/mcmodding-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OGMatrix/mcmodding-mcp/issues"
+  },
+  "homepage": "https://github.com/OGMatrix/mcmodding-mcp#readme"
+}
