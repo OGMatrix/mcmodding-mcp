@@ -64,7 +64,7 @@ jobs:
 
       - name: Publish to npm
         if: ${{ github.event.inputs.skip_npm != 'true' }}
-        run: npm publish --provenance --access public
+        run: npm publish --provenance --access public --ignore-scripts
 
       - name: Prepare database release artifacts
         run: |

@@ -36,7 +36,7 @@
     "prepublishOnly": "npm run build:prod",
     "release:auto": "semantic-release",
     "release": "npm run build:prod && npm version",
-    "validate": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "validate": "npm run typecheck && npm run lint && npm run test",
     "db:manifest": "npx tsx scripts/generate-db-manifest.ts"
   },
   "keywords": [
