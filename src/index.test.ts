@@ -687,8 +687,8 @@ describe('Tool Response Format', () => {
       handleGetMinecraftVersion = versionModule.handleGetMinecraftVersion;
     });
 
-    it('searchDocs should return valid CallToolResult', () => {
-      const result = handleSearchDocs({ query: 'test' });
+    it('searchDocs should return valid CallToolResult', async () => {
+      const result = await handleSearchDocs({ query: 'test' });
 
       expect(result).toHaveProperty('content');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
@@ -722,14 +722,14 @@ describe('Tool Response Format', () => {
       expect(Array.isArray(result.content)).toBe(true);
     });
 
-    it('error responses should have isError flag', () => {
-      const result = handleSearchDocs({ query: '' });
+    it('error responses should have isError flag', async () => {
+      const result = await handleSearchDocs({ query: '' });
 
       expect(result.isError).toBe(true);
     });
 
-    it('error responses should have text content explaining the error', () => {
-      const result = handleSearchDocs({ query: '' });
+    it('error responses should have text content explaining the error', async () => {
+      const result = await handleSearchDocs({ query: '' });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const content = (result as any).content;

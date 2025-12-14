@@ -21,12 +21,6 @@ export interface GetExampleParams {
  */
 export function handleGetExample(params: GetExampleParams): CallToolResult {
   try {
-    const exampleService = new ExampleService();
-
-    if (params.minecraftVersion === 'latest') {
-      params.minecraftVersion = exampleService.getLatestMinecraftVersion();
-    }
-
     const { topic, language = 'java', loader, minecraftVersion, category, limit = 5 } = params;
 
     // Validate topic
@@ -38,7 +32,14 @@ export function handleGetExample(params: GetExampleParams): CallToolResult {
             text: 'Error: Topic parameter is required. Please specify what you want examples for (e.g., "register item", "block entity", "networking").',
           },
         ],
+        isError: true,
       };
+    }
+
+    const exampleService = new ExampleService();
+
+    if (params.minecraftVersion === 'latest') {
+      params.minecraftVersion = exampleService.getLatestMinecraftVersion();
     }
 
     // Validate and clamp limit
