@@ -739,19 +739,13 @@ export class DocumentCrawler {
     try {
       const parsed = new URL(url);
       // Check for fabricmc.net or its subdomains
-      if (
-        parsed.host === 'fabricmc.net' ||
-        parsed.host.endsWith('.fabricmc.net')
-      ) {
+      if (parsed.host === 'fabricmc.net' || parsed.host.endsWith('.fabricmc.net')) {
         return 'fabric';
       }
-      if (
-        parsed.host === 'neoforged.net' ||
-        parsed.host.endsWith('.neoforged.net')
-      ) {
+      if (parsed.host === 'neoforged.net' || parsed.host.endsWith('.neoforged.net')) {
         return 'neoforge';
       }
-    } catch (e) {
+    } catch {
       // If parsing fails (possibly a relative URL), fallback to path-based detection
       // ignore
     }
