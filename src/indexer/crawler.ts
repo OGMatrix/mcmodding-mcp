@@ -736,10 +736,29 @@ export class DocumentCrawler {
    * Detect loader from URL
    */
   private detectLoader(url: string): 'fabric' | 'neoforge' | 'shared' {
-    if (url.includes('fabricmc.net') || url.includes('/fabric/')) {
+    try {
+      const parsed = new URL(url);
+      // Check for fabricmc.net or its subdomains
+      if (
+        parsed.host === 'fabricmc.net' ||
+        parsed.host.endsWith('.fabricmc.net')
+      ) {
+        return 'fabric';
+      }
+      if (
+        parsed.host === 'neoforged.net' ||
+        parsed.host.endsWith('.neoforged.net')
+      ) {
+        return 'neoforge';
+      }
+    } catch (e) {
+      // If parsing fails (possibly a relative URL), fallback to path-based detection
+      // ignore
+    }
+    if (url.includes('/fabric/')) {
       return 'fabric';
     }
-    if (url.includes('neoforged.net') || url.includes('/neoforge/')) {
+    if (url.includes('/neoforge/')) {
       return 'neoforge';
     }
     return 'shared';
