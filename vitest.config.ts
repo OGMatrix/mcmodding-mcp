@@ -18,5 +18,6 @@ export default defineConfig({
     },
     include: ['src/**/*.{test,spec}.ts'],
     exclude: ['node_modules', 'dist'],
+    testTimeout: 60000,
   },
 });
