@@ -1,0 +1,55 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  release-please:
+    name: Create/Update Release PR
+    runs-on: ubuntu-latest
+
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+      major: ${{ steps.release.outputs.major }}
+      minor: ${{ steps.release.outputs.minor }}
+      patch: ${{ steps.release.outputs.patch }}
+      pr: ${{ steps.release.outputs.pr }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          target-branch: prod
+
+      - name: Log release-please output
+        run: |
+          echo "## Release Please Output" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ steps.release.outputs.pr }}" != "" ]]; then
+            echo "📋 **PR Created/Updated:** #${{ steps.release.outputs.pr }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [[ "${{ steps.release.outputs.release_created }}" == "true" ]]; then
+            echo "🎉 **Release Created:** v${{ steps.release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+            echo "🏷️ **Tag:** ${{ steps.release.outputs.tag_name }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ No release created (PR pending merge to prod)" >> $GITHUB_STEP_SUMMARY
+          fi
