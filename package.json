@@ -8,8 +8,7 @@
     "mcmodding-mcp": "dist/index.js"
   },
   "files": [
-    "dist",
-    "data/*.db"
+    "dist"
   ],
   "scripts": {
     "build": "tsc",
