@@ -1018,9 +1018,12 @@ export class DocumentStore {
     let normA = 0;
     let normB = 0;
     for (let i = 0; i < a.length; i++) {
-      dotProduct += a[i] * b[i];
-      normA += a[i] * a[i];
-      normB += b[i] * b[i];
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      dotProduct += a[i]! * b[i]!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      normA += a[i]! * a[i]!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      normB += b[i]! * b[i]!;
     }
     return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
   }
