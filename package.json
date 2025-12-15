@@ -8,7 +8,8 @@
     "mcmodding-mcp": "dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "scripts/postinstall.js"
   ],
   "scripts": {
     "build": "tsc",
@@ -31,8 +32,8 @@
     "clean:all": "rimraf dist data",
     "prebuild": "npm run clean",
     "prebuild:prod": "npm run clean:all",
-    "postinstall": "node -e \"console.log('\\n✨ mcmodding-mcp installed successfully!\\n📚 Documentation index ready to use.\\n')\"",
-    "prepublishOnly": "npm run build:prod",
+    "postinstall": "node scripts/postinstall.js",
+    "prepublishOnly": "",
     "release:auto": "semantic-release",
     "release": "npm run build:prod && npm version",
     "validate": "npm run typecheck && npm run lint && npm run test",
@@ -99,7 +100,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/OGMatrix/mcmodding-mcp.git"
+    "url": "git+https://github.com/OGMatrix/mcmodding-mcp.git"
   },
   "bugs": {
     "url": "https://github.com/OGMatrix/mcmodding-mcp/issues"

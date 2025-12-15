@@ -141,8 +141,10 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # Project-specific
-data/
-*.db
-*.db-journal
+data/*.db-journal
+data/*.db.tmp
+data/*.db.backup
+!data/mcmodding-docs.db
+!data/manifest.json
 .DS_Store
 .claude

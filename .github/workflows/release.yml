@@ -32,6 +32,12 @@ jobs:
         with:
           fetch-depth: 0
           ref: prod
+          lfs: true
+
+      - name: Setup Git LFS
+        run: |
+          git lfs install
+          git lfs pull
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -61,6 +67,31 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           echo "📋 Generating manifest for version $VERSION"
           npm run db:manifest -- --version "$VERSION" --type full --changelog "Full documentation index update for v$VERSION"
+
+      - name: Commit database to repository
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "📦 Committing database v$VERSION to repository via Git LFS"
+
+          # Ensure data directory exists
+          mkdir -p data
+
+          # Add the database and manifest files
+          git add data/mcmodding-docs.db data/manifest.json
+
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to database files"
+          else
+            git commit -m "chore(db): update documentation database to v$VERSION
+
+            🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+            Co-Authored-By: github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+
+            git push origin prod
+            echo "✅ Database committed and pushed"
+          fi
 
       - name: Publish to npm
         if: ${{ github.event.inputs.skip_npm != 'true' }}
@@ -129,6 +160,12 @@ jobs:
         with:
           fetch-depth: 0
           ref: prod
+          lfs: true
+
+      - name: Setup Git LFS
+        run: |
+          git lfs install
+          git lfs pull
 
       - name: Configure Git
         run: |
@@ -148,6 +185,8 @@ jobs:
             - Updated `package.json` version
             - Updated `CHANGELOG.md`
             - Updated `.release-please-manifest.json`
+            - Updated `data/mcmodding-docs.db` (via Git LFS)
+            - Updated `data/manifest.json`
 
             **Auto-merge recommended** to keep branches in sync.
           branch: sync/prod-to-dev

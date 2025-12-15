@@ -22,6 +22,12 @@ jobs:
         with:
           ref: dev
           fetch-depth: 0
+          lfs: true
+
+      - name: Setup Git LFS
+        run: |
+          git lfs install
+          git lfs pull
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -87,6 +93,7 @@ jobs:
             - ✅ Fetched latest documentation pages
             - ✅ Updated chunks for incremental changes only
             - ✅ Regenerated semantic embeddings for updated chunks
+            - ✅ Database stored via Git LFS
             - ✅ No breaking changes
 
             ### How to Test

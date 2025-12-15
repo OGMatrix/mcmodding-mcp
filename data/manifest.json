@@ -1,0 +1,9 @@
+{
+  "version": "0.1.1",
+  "timestamp": "2025-12-14T17:48:02.903Z",
+  "type": "incremental",
+  "hash": "a968ef73e0cd127bb94c7ffb787f257bf1d61b32f49dd19b5311a6be678ed959",
+  "size": 118784,
+  "downloadUrl": "https://github.com/OGMatrix/mcmodding-mcp/releases/download/db-v0.1.1/mcmodding-docs.db",
+  "changelog": "Updated documentation index"
+}

@@ -239,7 +239,7 @@ export class DbVersioning {
         type,
         hash,
         size: stats.size,
-        downloadUrl: `https://github.com/${process.env.GITHUB_REPOSITORY}/releases/download/db-v${version}/mcmodding-docs.db`,
+        downloadUrl: `https://github.com/OGMatrix/mcmodding-mcp/releases/download/db-v${version}/mcmodding-docs.db`,
         changelog,
       };
 
