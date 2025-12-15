@@ -146,5 +146,12 @@ data/*.db.tmp
 data/*.db.backup
 !data/mcmodding-docs.db
 !data/manifest.json
+!data/mod-examples.db
+!data/mod-examples-manifest.json
 .DS_Store
 .claude
+
+# Local-only scripts (not published to npm/git)
+# These require local LM Studio setup and are for maintainers only
+scripts/index-mod-examples.ts
+scripts/generate-mod-examples-manifest.ts

@@ -177,10 +177,12 @@ function sleep(ms) {
 
 function printBanner() {
   const width = Math.min(getTerminalWidth(), 72);
-  const innerWidth = width - 4;
+  const innerWidth = width - 2;
 
   console.log();
-  console.log(c.brightCyan + sym.topLeft + sym.horizontal.repeat(width - 2) + sym.topRight + c.reset);
+  console.log(
+    c.brightCyan + sym.topLeft + sym.horizontal.repeat(width - 2) + sym.topRight + c.reset
+  );
 
   // ASCII Art Logo
   const logo = [
@@ -193,18 +195,44 @@ function printBanner() {
   ];
 
   logo.forEach((line) => {
-    console.log(c.brightCyan + sym.vertical + c.reset + centerText(line, innerWidth) + c.brightCyan + sym.vertical + c.reset);
+    console.log(
+      c.brightCyan +
+        sym.vertical +
+        c.reset +
+        centerText(line, innerWidth) +
+        c.brightCyan +
+        sym.vertical +
+        c.reset
+    );
   });
 
   // Subtitle
   console.log(c.brightCyan + sym.vertical + ' '.repeat(innerWidth) + sym.vertical + c.reset);
   const subtitle = `${c.brightMagenta}${sym.pickaxe} ${c.bold}Minecraft Modding Documentation${c.reset}${c.brightMagenta} ${sym.pickaxe}${c.reset}`;
-  console.log(c.brightCyan + sym.vertical + c.reset + centerText(subtitle, innerWidth) + c.brightCyan + sym.vertical + c.reset);
+  console.log(
+    c.brightCyan +
+      sym.vertical +
+      c.reset +
+      centerText(subtitle, innerWidth) +
+      c.brightCyan +
+      sym.vertical +
+      c.reset
+  );
 
   const subtitle2 = `${c.dim}Model Context Protocol Server${c.reset}`;
-  console.log(c.brightCyan + sym.vertical + c.reset + centerText(subtitle2, innerWidth) + c.brightCyan + sym.vertical + c.reset);
+  console.log(
+    c.brightCyan +
+      sym.vertical +
+      c.reset +
+      centerText(subtitle2, innerWidth) +
+      c.brightCyan +
+      sym.vertical +
+      c.reset
+  );
 
-  console.log(c.brightCyan + sym.bottomLeft + sym.horizontal.repeat(width - 2) + sym.bottomRight + c.reset);
+  console.log(
+    c.brightCyan + sym.bottomLeft + sym.horizontal.repeat(width - 2) + sym.bottomRight + c.reset
+  );
   console.log();
 }
 
@@ -212,15 +240,23 @@ function printSectionHeader(title, icon = sym.arrowRight) {
   const width = Math.min(getTerminalWidth(), 72);
   console.log();
   console.log(
-    c.brightBlue + sym.sTopLeft + sym.sHorizontal.repeat(2) + c.reset +
-    ` ${c.bold}${icon} ${title}${c.reset} ` +
-    c.brightBlue + sym.sHorizontal.repeat(Math.max(0, width - title.length - 10)) + sym.sTopRight + c.reset
+    c.brightBlue +
+      sym.sTopLeft +
+      sym.sHorizontal.repeat(2) +
+      c.reset +
+      ` ${c.bold}${icon} ${title}${c.reset} ` +
+      c.brightBlue +
+      sym.sHorizontal.repeat(Math.max(0, width - title.length - 10)) +
+      sym.sTopRight +
+      c.reset
   );
 }
 
 function printSectionFooter() {
   const width = Math.min(getTerminalWidth(), 72);
-  console.log(c.brightBlue + sym.sBottomLeft + sym.sHorizontal.repeat(width - 2) + sym.sBottomRight + c.reset);
+  console.log(
+    c.brightBlue + sym.sBottomLeft + sym.sHorizontal.repeat(width - 2) + sym.sBottomRight + c.reset
+  );
 }
 
 function createProgressBar(progress, width = 40, showGradient = true) {
@@ -295,7 +331,9 @@ class ProgressDisplay {
     // Progress bar
     const bar = createProgressBar(progress, barWidth);
     const percentStr = `${percent}%`.padStart(4);
-    lines.push(`  ${c.dim}[${c.reset}${bar}${c.dim}]${c.reset} ${c.brightWhite}${percentStr}${c.reset}`);
+    lines.push(
+      `  ${c.dim}[${c.reset}${bar}${c.dim}]${c.reset} ${c.brightWhite}${percentStr}${c.reset}`
+    );
 
     // Stats line
     const downloadedStr = formatBytes(downloaded);
@@ -304,7 +342,8 @@ class ProgressDisplay {
     const etaStr = phase === 'download' && eta > 0 ? `ETA: ${formatTime(eta)}` : '';
 
     let statsLine = `  ${c.dim}${sym.cube}${c.reset} ${c.cyan}${downloadedStr}${c.reset} ${c.dim}/${c.reset} ${c.cyan}${totalStr}${c.reset}`;
-    if (speedStr) statsLine += `  ${c.dim}${sym.lightning}${c.reset} ${c.brightMagenta}${speedStr}${c.reset}`;
+    if (speedStr)
+      statsLine += `  ${c.dim}${sym.lightning}${c.reset} ${c.brightMagenta}${speedStr}${c.reset}`;
     if (etaStr) statsLine += `  ${c.dim}${sym.clock}${c.reset} ${c.yellow}${etaStr}${c.reset}`;
 
     lines.push(statsLine);
@@ -340,19 +379,25 @@ function printStepIndicator(step, total, description, status = 'pending') {
     error: c.red,
   };
 
-  console.log(`  ${icons[status]} ${colors[status]}Step ${step}/${total}: ${description}${c.reset}`);
+  console.log(
+    `  ${icons[status]} ${colors[status]}Step ${step}/${total}: ${description}${c.reset}`
+  );
 }
 
 function printWelcomeScreen() {
   const width = Math.min(getTerminalWidth(), 72);
-  const innerWidth = width - 6;
+  const innerWidth = width - 4;
 
   console.log();
-  console.log(c.brightGreen + '  ' + sym.sparkle + ' Installation Complete! ' + sym.sparkle + c.reset);
+  console.log(
+    c.brightGreen + '  ' + sym.sparkle + ' Installation Complete! ' + sym.sparkle + c.reset
+  );
   console.log();
 
   // Welcome box
-  console.log(c.green + '  ' + sym.topLeft + sym.horizontal.repeat(width - 4) + sym.topRight + c.reset);
+  console.log(
+    c.green + '  ' + sym.topLeft + sym.horizontal.repeat(width - 4) + sym.topRight + c.reset
+  );
 
   const welcomeLines = [
     '',
@@ -368,19 +413,37 @@ function printWelcomeScreen() {
 
   welcomeLines.forEach((line) => {
     const paddedLine = centerText(line, innerWidth);
-    console.log(c.green + '  ' + sym.vertical + c.reset + paddedLine + c.green + sym.vertical + c.reset);
+    console.log(
+      c.green + '  ' + sym.vertical + c.reset + paddedLine + c.green + sym.vertical + c.reset
+    );
   });
 
-  console.log(c.green + '  ' + sym.bottomLeft + sym.horizontal.repeat(width - 4) + sym.bottomRight + c.reset);
+  console.log(
+    c.green + '  ' + sym.bottomLeft + sym.horizontal.repeat(width - 4) + sym.bottomRight + c.reset
+  );
   console.log();
 
   // Quick start section
-  console.log(c.brightBlue + '  ' + sym.sTopLeft + sym.sHorizontal.repeat(2) + c.reset + ` ${c.bold}${sym.rocket} Quick Start${c.reset} ` + c.brightBlue + sym.sHorizontal.repeat(width - 20) + sym.sTopRight + c.reset);
+  console.log(
+    c.brightBlue +
+      '  ' +
+      sym.sTopLeft +
+      sym.sHorizontal.repeat(2) +
+      c.reset +
+      ` ${c.bold}${sym.rocket} Quick Start${c.reset} ` +
+      c.brightBlue +
+      sym.sHorizontal.repeat(width - 20) +
+      sym.sTopRight +
+      c.reset
+  );
   console.log(c.brightBlue + '  ' + sym.sVertical + c.reset);
 
   const quickStart = [
     [`${c.yellow}Configure Claude Desktop:${c.reset}`, ''],
-    [`${c.dim}Add to your ${c.reset}${c.cyan}claude_desktop_config.json${c.reset}${c.dim}:${c.reset}`, ''],
+    [
+      `${c.dim}Add to your ${c.reset}${c.cyan}claude_desktop_config.json${c.reset}${c.dim}:${c.reset}`,
+      '',
+    ],
     ['', ''],
     [`  ${c.brightBlack}{${c.reset}`, ''],
     [`    ${c.brightBlue}"mcpServers"${c.reset}: {`, ''],
@@ -397,11 +460,29 @@ function printWelcomeScreen() {
   });
 
   console.log(c.brightBlue + '  ' + sym.sVertical + c.reset);
-  console.log(c.brightBlue + '  ' + sym.sBottomLeft + sym.sHorizontal.repeat(width - 4) + sym.sBottomRight + c.reset);
+  console.log(
+    c.brightBlue +
+      '  ' +
+      sym.sBottomLeft +
+      sym.sHorizontal.repeat(width - 4) +
+      sym.sBottomRight +
+      c.reset
+  );
   console.log();
 
   // Available tools section
-  console.log(c.brightMagenta + '  ' + sym.sTopLeft + sym.sHorizontal.repeat(2) + c.reset + ` ${c.bold}${sym.gear} Available Tools${c.reset} ` + c.brightMagenta + sym.sHorizontal.repeat(width - 24) + sym.sTopRight + c.reset);
+  console.log(
+    c.brightMagenta +
+      '  ' +
+      sym.sTopLeft +
+      sym.sHorizontal.repeat(2) +
+      c.reset +
+      ` ${c.bold}${sym.gear} Available Tools${c.reset} ` +
+      c.brightMagenta +
+      sym.sHorizontal.repeat(width - 24) +
+      sym.sTopRight +
+      c.reset
+  );
   console.log(c.brightMagenta + '  ' + sym.sVertical + c.reset);
 
   const tools = [
@@ -417,18 +498,31 @@ function printWelcomeScreen() {
   });
 
   console.log(c.brightMagenta + '  ' + sym.sVertical + c.reset);
-  console.log(c.brightMagenta + '  ' + sym.sBottomLeft + sym.sHorizontal.repeat(width - 4) + sym.sBottomRight + c.reset);
+  console.log(
+    c.brightMagenta +
+      '  ' +
+      sym.sBottomLeft +
+      sym.sHorizontal.repeat(width - 4) +
+      sym.sBottomRight +
+      c.reset
+  );
   console.log();
 
   // Footer links
   console.log(c.dim + '  ' + sym.sHorizontal.repeat(width - 4) + c.reset);
   console.log();
-  console.log(`  ${c.dim}${sym.book}${c.reset} ${c.brightBlue}GitHub:${c.reset} ${c.underline}https://github.com/OGMatrix/mcmodding-mcp${c.reset}`);
-  console.log(`  ${c.dim}${sym.warning}${c.reset} ${c.brightBlue}Issues:${c.reset} ${c.underline}https://github.com/OGMatrix/mcmodding-mcp/issues${c.reset}`);
+  console.log(
+    `  ${c.dim}${sym.book}${c.reset} ${c.brightBlue}GitHub:${c.reset} ${c.underline}https://github.com/OGMatrix/mcmodding-mcp${c.reset}`
+  );
+  console.log(
+    `  ${c.dim}${sym.warning}${c.reset} ${c.brightBlue}Issues:${c.reset} ${c.underline}https://github.com/OGMatrix/mcmodding-mcp/issues${c.reset}`
+  );
   console.log();
   console.log(c.dim + '  ' + sym.sHorizontal.repeat(width - 4) + c.reset);
   console.log();
-  console.log(`  ${c.brightGreen}${sym.sparkle}${c.reset} ${c.italic}Happy modding!${c.reset} ${c.brightGreen}${sym.sparkle}${c.reset}`);
+  console.log(
+    `  ${c.brightGreen}${sym.sparkle}${c.reset} ${c.italic}Happy modding!${c.reset} ${c.brightGreen}${sym.sparkle}${c.reset}`
+  );
   console.log();
 }
 
@@ -438,34 +532,38 @@ function printWelcomeScreen() {
 
 function httpsGet(url, options = {}) {
   return new Promise((resolve, reject) => {
-    const req = https.get(url, {
-      headers: {
-        'User-Agent': CONFIG.userAgent,
-        Accept: 'application/vnd.github.v3+json',
-        ...options.headers,
+    const req = https.get(
+      url,
+      {
+        headers: {
+          'User-Agent': CONFIG.userAgent,
+          Accept: 'application/vnd.github.v3+json',
+          ...options.headers,
+        },
       },
-    }, (res) => {
-      // Handle redirects
-      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        httpsGet(res.headers.location, options).then(resolve).catch(reject);
-        return;
-      }
+      (res) => {
+        // Handle redirects
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          httpsGet(res.headers.location, options).then(resolve).catch(reject);
+          return;
+        }
 
-      if (res.statusCode !== 200) {
-        reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
-        return;
-      }
+        if (res.statusCode !== 200) {
+          reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
+          return;
+        }
 
-      if (options.stream) {
-        resolve(res);
-        return;
-      }
+        if (options.stream) {
+          resolve(res);
+          return;
+        }
 
-      let data = '';
-      res.on('data', (chunk) => data += chunk);
-      res.on('end', () => resolve(data));
-      res.on('error', reject);
-    });
+        let data = '';
+        res.on('data', (chunk) => (data += chunk));
+        res.on('end', () => resolve(data));
+        res.on('error', reject);
+      }
+    );
 
     req.on('error', reject);
     req.setTimeout(30000, () => {
@@ -489,44 +587,46 @@ async function downloadWithProgress(url, destPath, onProgress) {
         },
       };
 
-      https.get(options, (res) => {
-        // Handle redirects
-        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          makeRequest(res.headers.location);
-          return;
-        }
+      https
+        .get(options, (res) => {
+          // Handle redirects
+          if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+            makeRequest(res.headers.location);
+            return;
+          }
 
-        if (res.statusCode !== 200) {
+          if (res.statusCode !== 200) {
+            file.close();
+            fs.unlinkSync(destPath);
+            reject(new Error(`HTTP ${res.statusCode}`));
+            return;
+          }
+
+          const total = parseInt(res.headers['content-length'], 10) || 0;
+          let downloaded = 0;
+
+          res.on('data', (chunk) => {
+            downloaded += chunk.length;
+            file.write(chunk);
+            if (onProgress) onProgress(downloaded, total);
+          });
+
+          res.on('end', () => {
+            file.end();
+            resolve({ downloaded, total });
+          });
+
+          res.on('error', (err) => {
+            file.close();
+            fs.unlinkSync(destPath);
+            reject(err);
+          });
+        })
+        .on('error', (err) => {
           file.close();
-          fs.unlinkSync(destPath);
-          reject(new Error(`HTTP ${res.statusCode}`));
-          return;
-        }
-
-        const total = parseInt(res.headers['content-length'], 10) || 0;
-        let downloaded = 0;
-
-        res.on('data', (chunk) => {
-          downloaded += chunk.length;
-          file.write(chunk);
-          if (onProgress) onProgress(downloaded, total);
-        });
-
-        res.on('end', () => {
-          file.end();
-          resolve({ downloaded, total });
-        });
-
-        res.on('error', (err) => {
-          file.close();
-          fs.unlinkSync(destPath);
+          if (fs.existsSync(destPath)) fs.unlinkSync(destPath);
           reject(err);
         });
-      }).on('error', (err) => {
-        file.close();
-        if (fs.existsSync(destPath)) fs.unlinkSync(destPath);
-        reject(err);
-      });
     };
 
     makeRequest(url);
@@ -590,8 +690,14 @@ async function main() {
     if (isColorSupported) process.stdout.write(c.cursorShow);
   };
   process.on('exit', cleanup);
-  process.on('SIGINT', () => { cleanup(); process.exit(1); });
-  process.on('SIGTERM', () => { cleanup(); process.exit(1); });
+  process.on('SIGINT', () => {
+    cleanup();
+    process.exit(1);
+  });
+  process.on('SIGTERM', () => {
+    cleanup();
+    process.exit(1);
+  });
 
   try {
     printBanner();
@@ -632,14 +738,21 @@ async function main() {
       process.stdout.write(c.cursorUp + c.clearLine);
       printStepIndicator(2, 4, `Failed to fetch release info: ${error.message}`, 'error');
       console.log();
-      console.log(c.yellow + `  ${sym.warning} The database will be downloaded on first use.${c.reset}`);
+      console.log(
+        c.yellow + `  ${sym.warning} The database will be downloaded on first use.${c.reset}`
+      );
       printSectionFooter();
       printWelcomeScreen();
       return;
     }
 
     process.stdout.write(c.cursorUp + c.clearLine);
-    printStepIndicator(2, 4, `Found database v${manifest.version} (${formatBytes(manifest.size)})`, 'done');
+    printStepIndicator(
+      2,
+      4,
+      `Found database v${manifest.version} (${formatBytes(manifest.size)})`,
+      'done'
+    );
 
     // Step 3: Download database
     printStepIndicator(3, 4, 'Downloading database...', 'active');
@@ -662,7 +775,9 @@ async function main() {
       progress.finish(false, `Download failed: ${error.message}`);
       if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
       console.log();
-      console.log(c.yellow + `  ${sym.warning} The database will be downloaded on first use.${c.reset}`);
+      console.log(
+        c.yellow + `  ${sym.warning} The database will be downloaded on first use.${c.reset}`
+      );
       printSectionFooter();
       printWelcomeScreen();
       return;
@@ -687,7 +802,9 @@ async function main() {
         verifyProgress.finish(false, 'Hash verification failed!');
         if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
         console.log();
-        console.log(c.yellow + `  ${sym.warning} The database will be downloaded on first use.${c.reset}`);
+        console.log(
+          c.yellow + `  ${sym.warning} The database will be downloaded on first use.${c.reset}`
+        );
         printSectionFooter();
         printWelcomeScreen();
         return;
@@ -700,12 +817,13 @@ async function main() {
 
       // Save manifest
       fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-
     } catch (error) {
       verifyProgress.finish(false, `Verification failed: ${error.message}`);
       if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
       console.log();
-      console.log(c.yellow + `  ${sym.warning} The database will be downloaded on first use.${c.reset}`);
+      console.log(
+        c.yellow + `  ${sym.warning} The database will be downloaded on first use.${c.reset}`
+      );
       printSectionFooter();
       printWelcomeScreen();
       return;
@@ -720,12 +838,13 @@ async function main() {
 
     // Show welcome screen
     printWelcomeScreen();
-
   } catch (error) {
     console.error();
     console.error(c.brightRed + `  ${sym.cross} Installation error: ${error.message}${c.reset}`);
     console.error();
-    console.log(c.yellow + `  ${sym.warning} The database will be downloaded on first use.${c.reset}`);
+    console.log(
+      c.yellow + `  ${sym.warning} The database will be downloaded on first use.${c.reset}`
+    );
     console.log();
     printWelcomeScreen();
   } finally {
