@@ -62,9 +62,14 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=6144
 
+      - name: Update npm
+        run: npm install -g npm@latest
+
       - name: Publish to npm
         if: ${{ github.event.inputs.skip_npm != 'true' }}
         run: npm publish --provenance --access public --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Prepare database release artifacts
         run: |

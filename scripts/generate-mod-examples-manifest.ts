@@ -99,7 +99,11 @@ async function generateManifest(): Promise<void> {
 
   // Parse command line arguments
   const args = process.argv.slice(2);
-  const version = args.find((a) => a.startsWith('--version='))?.split('=')[1] || '0.1.4';
+  const packageJson = JSON.parse(
+    fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8')
+  );
+  const version =
+    args.find((a) => a.startsWith('--version='))?.split('=')[1] || packageJson.version;
   const changelog =
     args.find((a) => a.startsWith('--changelog='))?.split('=')[1] || 'Mod examples update';
 

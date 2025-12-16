@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "build:prod": "npm run db:manifest && npm run build",
+    "build:prod": "npm run build",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "test": "vitest",

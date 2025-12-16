@@ -12,7 +12,10 @@ async function main() {
   const args = process.argv.slice(2);
 
   // Parse arguments
-  let version = '0.1.4';
+  const packageJson = JSON.parse(
+    fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8')
+  );
+  let version = packageJson.version;
   let type: 'incremental' | 'full' = 'incremental';
   let changelog = 'Updated documentation index';
 
