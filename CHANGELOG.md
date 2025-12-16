@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.1.2...v0.1.3) (2025-12-16)
+
+
+### 🐛 Bug Fixes
+
+* update default version in generation scripts ([5181dbc](https://github.com/OGMatrix/mcmodding-mcp/commit/5181dbc357ff478fba4e948aa644ee4beaafc36e))
+
 ## [0.1.1](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.1.0...v0.1.1) (2025-12-14)
 
 
