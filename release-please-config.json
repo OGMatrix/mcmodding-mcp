@@ -4,6 +4,7 @@
   "packages": {
     ".": {
       "package-name": "mcmodding-mcp",
+      "component": "",
       "changelog-path": "CHANGELOG.md",
       "release-type": "node",
       "bump-minor-pre-major": true,
