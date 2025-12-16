@@ -26,6 +26,18 @@ Thank you for your interest in contributing! This guide will help you get starte
 
 ---
 
+## Reporting Issues
+
+We use GitHub Issues to track bugs and feature requests.
+
+- **Bugs**: If you find a bug, please use the [Bug Report template](https://github.com/OGMatrix/mcmodding-mcp/issues/new?template=bug_report.yml).
+- **Features**: If you have an idea, please use the [Feature Request template](https://github.com/OGMatrix/mcmodding-mcp/issues/new?template=feature_request.yml).
+- **Questions**: For general questions, please use the [Question template](https://github.com/OGMatrix/mcmodding-mcp/issues/new?template=question.yml) or GitHub Discussions.
+
+Please search existing issues before opening a new one to avoid duplicates.
+
+---
+
 ## Getting Started
 
 ### Prerequisites
@@ -80,10 +92,12 @@ npm run validate         # typecheck + lint + test + build
 ### IDE Setup
 
 **VS Code** (Recommended):
+
 - Install recommended extensions (prompt appears on open)
 - Settings are pre-configured in `.vscode/`
 
 **Other IDEs**:
+
 - Enable ESLint integration
 - Enable Prettier for formatting
 - Configure TypeScript language service
@@ -100,13 +114,13 @@ feature/* ──┐
 bugfix/*  ──┘
 ```
 
-| Branch | Purpose |
-|--------|---------|
-| `dev` | Active development, all PRs target here |
-| `prod` | Production releases only |
-| `feature/*` | New features |
-| `bugfix/*` | Bug fixes |
-| `docs/*` | Documentation updates |
+| Branch      | Purpose                                 |
+| ----------- | --------------------------------------- |
+| `dev`       | Active development, all PRs target here |
+| `prod`      | Production releases only                |
+| `feature/*` | New features                            |
+| `bugfix/*`  | Bug fixes                               |
+| `docs/*`    | Documentation updates                   |
 
 ### Creating a Feature Branch
 
@@ -195,15 +209,16 @@ case 'my_new_tool':
 
 The indexer components are in `src/indexer/`:
 
-| File | Purpose |
-|------|---------|
-| `crawler.ts` | HTTP fetching and HTML parsing |
-| `chunker.ts` | Text splitting and chunking |
-| `embeddings.ts` | Semantic vector generation |
-| `store.ts` | SQLite database operations |
-| `sitemap.ts` | Sitemap parsing |
+| File            | Purpose                        |
+| --------------- | ------------------------------ |
+| `crawler.ts`    | HTTP fetching and HTML parsing |
+| `chunker.ts`    | Text splitting and chunking    |
+| `embeddings.ts` | Semantic vector generation     |
+| `store.ts`      | SQLite database operations     |
+| `sitemap.ts`    | Sitemap parsing                |
 
 When modifying:
+
 - Test with `npm run index-docs`
 - Check memory usage with large datasets
 - Ensure backward compatibility with existing databases
@@ -212,11 +227,11 @@ When modifying:
 
 Services in `src/services/` contain business logic:
 
-| File | Purpose |
-|------|---------|
-| `search-service.ts` | Search orchestration |
+| File                 | Purpose                   |
+| -------------------- | ------------------------- |
+| `search-service.ts`  | Search orchestration      |
 | `concept-service.ts` | Concept explanation logic |
-| `search-utils.ts` | Query parsing utilities |
+| `search-utils.ts`    | Query parsing utilities   |
 
 ---
 
@@ -236,18 +251,18 @@ We use [Conventional Commits](https://www.conventionalcommits.org/) for automati
 
 ### Types
 
-| Type | Description | Version Bump |
-|------|-------------|--------------|
-| `feat` | New feature | Minor |
-| `fix` | Bug fix | Patch |
-| `perf` | Performance improvement | Patch |
-| `refactor` | Code refactoring | None |
-| `docs` | Documentation | None |
-| `style` | Code style (formatting) | None |
-| `test` | Tests | None |
-| `build` | Build system | None |
-| `ci` | CI/CD | None |
-| `chore` | Maintenance | None |
+| Type       | Description             | Version Bump |
+| ---------- | ----------------------- | ------------ |
+| `feat`     | New feature             | Minor        |
+| `fix`      | Bug fix                 | Patch        |
+| `perf`     | Performance improvement | Patch        |
+| `refactor` | Code refactoring        | None         |
+| `docs`     | Documentation           | None         |
+| `style`    | Code style (formatting) | None         |
+| `test`     | Tests                   | None         |
+| `build`    | Build system            | None         |
+| `ci`       | CI/CD                   | None         |
+| `chore`    | Maintenance             | None         |
 
 ### Scopes
 
@@ -299,6 +314,15 @@ npm run validate
 grep -r "TODO" src/
 ```
 
+### PR Template
+
+When you open a Pull Request, a template will automatically load. Please fill out all sections:
+
+- **Description**: What changed and why.
+- **Related Issue**: Link to the issue (e.g., `Fixes #123`).
+- **Type of Change**: Check the appropriate box.
+- **Checklist**: Ensure you've completed all steps.
+
 ### PR Checklist
 
 - [ ] Branch is based on latest `dev`
@@ -325,14 +349,18 @@ docs: update installation instructions
 
 ```markdown
 ## Summary
+
 Brief description of what this PR does and why.
 
 ## Changes
+
 - List of specific changes
 - Another change
 
 ## Testing
+
 How you tested these changes:
+
 - [ ] Unit tests added/updated
 - [ ] Manual testing performed
 - [ ] Edge cases considered
@@ -340,6 +368,7 @@ How you tested these changes:
 ## Screenshots (if applicable)
 
 ## Related Issues
+
 Fixes #123
 Related to #456
 ```
@@ -477,7 +506,7 @@ npm run test:coverage
 
 ### Code Comments
 
-```typescript
+````typescript
 /**
  * Search the documentation index for relevant content.
  *
@@ -497,17 +526,15 @@ npm run test:coverage
  * });
  * ```
  */
-export async function searchDocs(
-  query: string,
-  options?: SearchOptions
-): Promise<SearchResult[]> {
+export async function searchDocs(query: string, options?: SearchOptions): Promise<SearchResult[]> {
   // Implementation
 }
-```
+````
 
 ### README Updates
 
 Update the README when:
+
 - Adding new tools or features
 - Changing configuration options
 - Modifying installation steps
