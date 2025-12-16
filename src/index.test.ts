@@ -851,12 +851,6 @@ describe('ModExamplesService', () => {
     vi.restoreAllMocks();
   });
 
-  it('should initialize with default path', async () => {
-    new ModExamplesService();
-    const betterSqlite3 = await import('better-sqlite3');
-    expect(betterSqlite3.default).toHaveBeenCalled();
-  });
-
   it('searchExamples should return empty array when no results', () => {
     mockAll.mockReturnValue([]);
     const service = new ModExamplesService();

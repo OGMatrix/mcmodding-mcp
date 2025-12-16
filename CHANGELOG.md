@@ -20,26 +20,6 @@
 * trigger release after lfs push ([5418db8](https://github.com/OGMatrix/mcmodding-mcp/commit/5418db88996c37abb204d1ae1bbf7c12d06206cf))
 * use GH_TOKEN for semantic-release authentication ([e04afd9](https://github.com/OGMatrix/mcmodding-mcp/commit/e04afd94b5b1c254cd9c98e1cd588a85a32d284c))
 
-## [0.2.0](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.1.4...v0.2.0) (2025-12-16)
-
-### Features
-
-* switch from release-please to semantic-release ([84b5204](https://github.com/OGMatrix/mcmodding-mcp/commit/84b52046d522329a0ba21e1ec81139ba6a5dfaeb))
-* update ([9644179](https://github.com/OGMatrix/mcmodding-mcp/commit/964417976d24e4e79fcaa15bb080450e16ce7be8))
-
-### Bug Fixes
-
-* configure semantic-release to skip npm publish ([56f9fd9](https://github.com/OGMatrix/mcmodding-mcp/commit/56f9fd98ba4c78985d064611091dee82dd63c2c7))
-* sync versions to 0.1.4 ([19f37a1](https://github.com/OGMatrix/mcmodding-mcp/commit/19f37a10f12184192e53115d803417c9d8cc7f51))
-
-### Build System
-
-* upgrade semantic-release to v24 ([645c5d3](https://github.com/OGMatrix/mcmodding-mcp/commit/645c5d32dd44151687e7ee7f09d9adb163153523))
-
-### CI/CD
-
-* use GH_TOKEN for semantic-release authentication ([e04afd9](https://github.com/OGMatrix/mcmodding-mcp/commit/e04afd94b5b1c254cd9c98e1cd588a85a32d284c))
-
 # Changelog
 
 ## [0.1.0](2025-12-14)
