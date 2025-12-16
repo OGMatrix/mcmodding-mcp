@@ -42,7 +42,7 @@ async function main() {
 
     // Write manifest to data directory for release
     const dataDir = path.join(process.cwd(), 'data');
-    const manifestPath = path.join(dataDir, 'manifest.json');
+    const manifestPath = path.join(dataDir, 'db-manifest.json');
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 
     console.log(`\n✅ Manifest saved to: ${manifestPath}`);
