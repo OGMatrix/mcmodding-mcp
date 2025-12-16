@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.1.4...v0.1.5) (2025-12-16)
+
+
+### 🐛 Bug Fixes
+
+* sync versions to 0.1.4 ([19f37a1](https://github.com/OGMatrix/mcmodding-mcp/commit/19f37a10f12184192e53115d803417c9d8cc7f51))
+
 ## [0.1.4](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.1.3...v0.1.4) (2025-12-16)
 
 
