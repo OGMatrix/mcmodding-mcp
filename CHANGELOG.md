@@ -1,27 +1,6 @@
 # Changelog
 
-## [0.1.5](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.1.4...v0.1.5) (2025-12-16)
-
-
-### 🐛 Bug Fixes
-
-* sync versions to 0.1.4 ([19f37a1](https://github.com/OGMatrix/mcmodding-mcp/commit/19f37a10f12184192e53115d803417c9d8cc7f51))
-
-## [0.1.4](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.1.3...v0.1.4) (2025-12-16)
-
-
-### 🐛 Bug Fixes
-
-* sync all version references to 0.1.3 ([d5a6b9b](https://github.com/OGMatrix/mcmodding-mcp/commit/d5a6b9b2ad2fe12b7ca126d20333976990d6ac6e))
-
-## [0.1.3](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.1.2...v0.1.3) (2025-12-16)
-
-
-### 🐛 Bug Fixes
-
-* update default version in generation scripts ([5181dbc](https://github.com/OGMatrix/mcmodding-mcp/commit/5181dbc357ff478fba4e948aa644ee4beaafc36e))
-
-## [0.1.1](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.1.0...v0.1.1) (2025-12-14)
+## [0.1.0](2025-12-14)
 
 
 ### ✨ Features
