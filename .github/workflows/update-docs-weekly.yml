@@ -69,7 +69,7 @@ jobs:
       - name: Commit documentation updates
         if: steps.check_changes.outputs.has_changes == 'true'
         run: |
-          git add data/mcmodding-docs.db data/manifest.json
+          git add data/mcmodding-docs.db data/db-manifest.json
           git commit -m "fix(docs): update documentation index" -m "- Incremental update of documentation pages
           - Updated embeddings for semantic search
           - Automated weekly update
