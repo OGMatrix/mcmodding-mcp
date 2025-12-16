@@ -31,7 +31,7 @@
     "clean": "rimraf dist",
     "clean:all": "rimraf dist data",
     "prebuild": "npm run clean",
-    "prebuild:prod": "npm run clean:all",
+    "prebuild:prod": "npm run clean",
     "postinstall": "node scripts/postinstall.js",
     "prepublishOnly": "",
     "release:auto": "semantic-release",
