@@ -260,8 +260,9 @@ function printSectionFooter() {
 }
 
 function createProgressBar(progress, width = 40, showGradient = true) {
-  const filled = Math.round(progress * width);
-  const empty = width - filled;
+  const clampedProgress = Math.min(Math.max(progress, 0), 1);
+  const filled = Math.round(clampedProgress * width);
+  const empty = Math.max(0, width - filled);
 
   let bar = '';
   if (showGradient && isColorSupported) {
