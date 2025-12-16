@@ -72,8 +72,15 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Prepare database release artifacts
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          VERSION=$(node -p "require('./package.json').version")
+          VERSION=${RELEASE_TAG#v}
+          echo "Generating manifest for version $VERSION"
+
+          # Regenerate manifest to ensure it matches the release version
+          npm run db:manifest -- --version "$VERSION" --changelog "Release $RELEASE_TAG"
+
           mkdir -p release-artifacts
           cp data/mcmodding-docs.db release-artifacts/
           cp data/db-manifest.json release-artifacts/db-manifest.json
