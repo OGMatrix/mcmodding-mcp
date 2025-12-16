@@ -12,7 +12,7 @@ async function main() {
   const args = process.argv.slice(2);
 
   // Parse arguments
-  let version = '0.1.2';
+  let version = '0.1.3';
   let type: 'incremental' | 'full' = 'incremental';
   let changelog = 'Updated documentation index';
 
