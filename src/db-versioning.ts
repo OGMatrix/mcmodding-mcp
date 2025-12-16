@@ -26,7 +26,7 @@ export class DbVersioning {
   constructor(dbPath?: string) {
     this.dbPath = dbPath || path.join(process.cwd(), 'data', 'mcmodding-docs.db');
     this.dataDir = path.dirname(this.dbPath);
-    this.localManifestPath = path.join(this.dataDir, 'manifest.json');
+    this.localManifestPath = path.join(this.dataDir, 'db-manifest.json');
     // Extract owner/repo from process.env or use defaults
     this.remoteRepoUrl =
       process.env.GITHUB_REPO_URL || 'https://api.github.com/repos/OGMatrix/mcmodding-mcp';
@@ -239,7 +239,7 @@ export class DbVersioning {
         type,
         hash,
         size: stats.size,
-        downloadUrl: `https://github.com/OGMatrix/mcmodding-mcp/releases/download/db-v${version}/mcmodding-docs.db`,
+        downloadUrl: `https://github.com/OGMatrix/mcmodding-mcp/releases/download/v${version}/mcmodding-docs.db`,
         changelog,
       };
 

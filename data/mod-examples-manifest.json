@@ -1,0 +1,46 @@
+{
+  "version": "0.1.1",
+  "timestamp": "2025-12-16T17:44:59.537Z",
+  "hash": "63d5f2cf0c3b4de1b183af3f567eb8931e71b64a06888af8b971a3747da441b7",
+  "size": 172032,
+  "downloadUrl": "https://github.com/OGMatrix/mcmodding-mcp/releases/download/examples-v0.1.1/mod-examples.db",
+  "stats": {
+    "mods": 1,
+    "examples": 3,
+    "relations": 0,
+    "categories": 20,
+    "featuredExamples": 3
+  },
+  "mods": [
+    {
+      "name": "Create",
+      "repo": "Creators-of-Create/Create",
+      "loader": "forge",
+      "exampleCount": 3,
+      "categories": [
+        "blocks",
+        "entities"
+      ],
+      "starCount": 3848
+    }
+  ],
+  "topCategories": [
+    {
+      "slug": "blocks",
+      "name": "Blocks",
+      "exampleCount": 1
+    },
+    {
+      "slug": "entities",
+      "name": "Entities",
+      "exampleCount": 1
+    }
+  ],
+  "qualityMetrics": {
+    "avgQualityScore": 0.9,
+    "highQualityCount": 3,
+    "expertLevelCount": 0,
+    "advancedLevelCount": 0
+  },
+  "changelog": "Mod examples update"
+}

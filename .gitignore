@@ -154,4 +154,4 @@ data/*.db.backup
 # Local-only scripts (not published to npm/git)
 # These require local LM Studio setup and are for maintainers only
 scripts/index-mod-examples.ts
-scripts/generate-mod-examples-manifest.ts
+# scripts/generate-mod-examples-manifest.ts

@@ -23,7 +23,7 @@ const CONFIG = {
   repoUrl: 'https://api.github.com/repos/OGMatrix/mcmodding-mcp/releases/latest',
   dataDir: path.join(__dirname, '..', 'data'),
   dbFileName: 'mcmodding-docs.db',
-  manifestFileName: 'manifest.json',
+  manifestFileName: 'db-manifest.json',
   userAgent: 'mcmodding-mcp-installer',
 };
 
@@ -577,6 +577,8 @@ async function downloadWithProgress(url, destPath, onProgress) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(destPath);
 
+    console.log(`  ${c.dim}${sym.arrow} Downloading from: ${url}${c.reset}`);
+
     const makeRequest = (requestUrl) => {
       const urlObj = new URL(requestUrl);
       const options = {
@@ -772,6 +774,7 @@ async function main() {
       });
       progress.finish(true, 'Download complete!');
     } catch (error) {
+      console.error(error);
       progress.finish(false, `Download failed: ${error.message}`);
       if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
       console.log();

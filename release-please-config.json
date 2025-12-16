@@ -70,7 +70,9 @@
         }
       ],
       "extra-files": [
-        "src/index.ts"
+        "src/index.ts",
+        "scripts/generate-db-manifest.ts",
+        "scripts/generate-mod-examples-manifest.ts"
       ]
     }
   },
