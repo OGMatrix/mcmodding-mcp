@@ -1,3 +1,9 @@
+## [0.2.1](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.2.0...v0.2.1) (2025-12-16)
+
+### Bug Fixes
+
+* prevent build:prod from deleting data folder ([4b22d33](https://github.com/OGMatrix/mcmodding-mcp/commit/4b22d3323579d767f49d000331c8fd7ae4c40117))
+
 ## [0.2.0](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.1.4...v0.2.0) (2025-12-16)
 
 ### Features
