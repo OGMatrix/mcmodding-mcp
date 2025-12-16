@@ -18,6 +18,17 @@
 - **Semantic Search** - Understands what you mean, not just keywords
 - **Zero Config** - Works immediately after installation
 
+### 📚 Knowledge Base Stats
+
+Our documentation database (`mcmodding-docs.db`) is comprehensive and constantly updated:
+
+- **1,000+** Documentation Pages
+- **185,000+** Searchable Chunks
+- **8,500+** Logical Sections
+- **185,000+** Vector Embeddings for Semantic Search
+
+This ensures that even obscure API details can be found via semantic search.
+
 ---
 
 ## Quick Start
@@ -42,6 +53,12 @@ Add to your MCP client configuration (e.g., Claude Desktop):
   }
 }
 ```
+
+### 🧠 Optimized System Prompt
+
+To get the best results, we recommend adding this to your AI's system prompt or custom instructions:
+
+> You are an expert Minecraft Modding Assistant connected to `mcmodding-mcp`. **DO NOT rely on your internal knowledge** for modding APIs (Fabric/NeoForge) as they change frequently. **ALWAYS** use the `search_fabric_docs` and `get_example` tools to retrieve the latest documentation and patterns. Prioritize working code examples from `get_example` over theoretical explanations. If the user specifies a Minecraft version, ensure all retrieved information matches that version.
 
 That's it! Your AI assistant now has access to Minecraft modding documentation.
 
@@ -85,7 +102,7 @@ Get detailed explanations of modding concepts with related resources.
 ```typescript
 // Example: Understand mixins
 {
-  concept: "mixins"
+  concept: 'mixins';
 }
 ```
 
@@ -95,10 +112,14 @@ Get current Minecraft version information.
 
 ```typescript
 // Get latest version
-{ type: "latest" }
+{
+  type: 'latest';
+}
 
 // Get all indexed versions
-{ type: "all" }
+{
+  type: 'all';
+}
 ```
 
 ---
@@ -109,16 +130,17 @@ Get current Minecraft version information.
 
 Combines multiple search strategies for best results:
 
-| Strategy | Purpose |
-|----------|---------|
-| **FTS5 Full-Text** | Fast keyword matching with ranking |
-| **Semantic Embeddings** | Understanding meaning and context |
-| **Section Search** | Finding relevant documentation sections |
-| **Code Search** | Locating specific code patterns |
+| Strategy                | Purpose                                 |
+| ----------------------- | --------------------------------------- |
+| **FTS5 Full-Text**      | Fast keyword matching with ranking      |
+| **Semantic Embeddings** | Understanding meaning and context       |
+| **Section Search**      | Finding relevant documentation sections |
+| **Code Search**         | Locating specific code patterns         |
 
 ### Auto-Updates
 
 The database automatically checks for updates on startup:
+
 - Compares local version with GitHub releases
 - Downloads new versions with hash verification
 - Creates backups before updating
@@ -127,8 +149,10 @@ The database automatically checks for updates on startup:
 ### Documentation Sources
 
 Currently indexes:
+
 - [wiki.fabricmc.net](https://wiki.fabricmc.net) - Fabric Wiki (226+ pages)
 - [docs.fabricmc.net](https://docs.fabricmc.net) - Official Fabric Docs (266+ pages)
+- [docs.neoforged.net](https://docs.neoforged.net) - NeoForge Docs (512+ pages)
 
 ---
 
@@ -188,7 +212,7 @@ mcmodding-mcp/
 │   └── index-docs.ts         # Documentation indexing script
 ├── data/
 │   ├── mcmodding-docs.db     # SQLite database
-│   └── manifest.json         # Version manifest
+│   └── db-manifest.json      # Version manifest
 └── dist/                     # Compiled JavaScript
 ```
 
@@ -240,9 +264,9 @@ This project uses [release-please](https://github.com/googleapis/release-please)
 
 ### Branch Strategy
 
-| Branch | Purpose |
-|--------|---------|
-| `dev` | Active development |
+| Branch | Purpose             |
+| ------ | ------------------- |
+| `dev`  | Active development  |
 | `prod` | Production releases |
 
 ### How It Works
@@ -260,11 +284,11 @@ See [RELEASE_WORKFLOW.md](RELEASE_WORKFLOW.md) for complete details.
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DB_PATH` | Custom database path | `./data/mcmodding-docs.db` |
-| `GITHUB_REPO_URL` | Custom repo for updates | Auto-detected |
-| `MCP_DEBUG` | Enable debug logging | `false` |
+| Variable          | Description             | Default                    |
+| ----------------- | ----------------------- | -------------------------- |
+| `DB_PATH`         | Custom database path    | `./data/mcmodding-docs.db` |
+| `GITHUB_REPO_URL` | Custom repo for updates | Auto-detected              |
+| `MCP_DEBUG`       | Enable debug logging    | `false`                    |
 
 ### Disabling Auto-Updates
 
@@ -273,20 +297,6 @@ Set `DB_PATH` to a custom location to manage updates manually:
 ```bash
 DB_PATH=/path/to/my/database.db mcmodding-mcp
 ```
-
----
-
-## Statistics
-
-Typical index contains:
-
-| Metric | Count |
-|--------|-------|
-| Documentation pages | 490+ |
-| Searchable sections | 2,000+ |
-| Code examples | 500+ |
-| Semantic embeddings | 5,000+ |
-| Database size | ~50 MB |
 
 ---
 

@@ -1,0 +1,23 @@
+name: ❓ Question / Support
+description: Ask a question about how to use the project
+title: '[Q] '
+labels: ['question', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check the [README](https://github.com/OGMatrix/mcmodding-mcp) first!
+
+  - type: textarea
+    id: question
+    attributes:
+      label: What is your question?
+      description: Describe what you are trying to achieve and where you are stuck.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Any relevant code snippets, configuration, or environment details.
