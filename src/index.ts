@@ -23,8 +23,8 @@ import {
 } from './tools/modExamples.js';
 
 // Check for CLI commands
-if (process.argv.includes('install')) {
-  const { runInstaller } = await import('./cli/install.js');
+if (process.argv.includes('manage')) {
+  const { runInstaller } = await import('./cli/manage.js');
   await runInstaller();
   process.exit(0);
 }

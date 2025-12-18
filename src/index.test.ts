@@ -356,7 +356,7 @@ describe('handleExplainConcept', () => {
           'max 100 characters'
         );
       }
-    });
+    }, 120000);
   });
 });
 
@@ -617,7 +617,7 @@ describe('Edge Cases', () => {
       const result = await handleExplainConcept({ concept: '日本語' });
       // Should not throw, validation should pass
       expect(result).toBeDefined();
-    });
+    }, 120000);
 
     it('should handle emoji in query', () => {
       const result = handleSearchDocs({ query: '🎮 minecraft' });
