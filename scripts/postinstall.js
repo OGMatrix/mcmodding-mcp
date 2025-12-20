@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-undef, no-control-regex, no-unused-vars */
 
 /**
  * MCModding-MCP Postinstall Script
@@ -735,6 +736,13 @@ async function main() {
       if (!manifestAsset) throw new Error('No manifest found in release');
 
       manifest = await fetchManifest(manifestAsset.browser_download_url);
+
+      // Find the database asset in the release to ensure we have the correct download URL
+      // This overrides the URL in the manifest which might be outdated or incorrect
+      const dbAsset = release.assets.find((a) => a.name === CONFIG.dbFileName);
+      if (dbAsset) {
+        manifest.downloadUrl = dbAsset.browser_download_url;
+      }
     } catch (error) {
       process.stdout.write(c.cursorUp + c.clearLine);
       printStepIndicator(2, 4, `Failed to fetch release info: ${error.message}`, 'error');

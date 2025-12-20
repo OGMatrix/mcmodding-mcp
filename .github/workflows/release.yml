@@ -75,11 +75,15 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          VERSION=${RELEASE_TAG#v}
-          echo "Generating manifest for version $VERSION"
+          echo "Generating new database manifest version..."
 
-          # Regenerate manifest to ensure it matches the release version
-          npm run db:manifest -- --version "$VERSION" --changelog "Release $RELEASE_TAG"
+          # Regenerate manifest with a patch bump to ensure a new version is created
+          # This makes the DB version independent of the package version
+          npm run db:manifest -- --bump patch --changelog "Release $RELEASE_TAG" --release-tag "$RELEASE_TAG"
+
+          # Log the new DB version
+          DB_VERSION=$(node -p "require('./data/db-manifest.json').version")
+          echo "Generated DB Manifest Version: $DB_VERSION"
 
           mkdir -p release-artifacts
           cp data/mcmodding-docs.db release-artifacts/

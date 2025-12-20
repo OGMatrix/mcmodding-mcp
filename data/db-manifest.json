@@ -1,9 +1,9 @@
 {
   "version": "0.2.2",
-  "timestamp": "2025-12-17T22:09:19.559Z",
+  "timestamp": "2025-12-20T16:28:52.918Z",
   "type": "incremental",
   "hash": "30eabb7295d5824e30c7cd623ac77e453973dfa7923e5d349dd36fa6edbfba57",
   "size": 579399680,
   "downloadUrl": "https://github.com/OGMatrix/mcmodding-mcp/releases/download/v0.2.2/mcmodding-docs.db",
-  "changelog": "Release v0.2.2"
+  "changelog": "Updated documentation index"
 }

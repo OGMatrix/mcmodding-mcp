@@ -691,13 +691,28 @@ async function getRemoteVersion(dbConfig: OptionalDb): Promise<RemoteInfo | null
     if (!release) return null;
 
     // Extract version from tag (e.g., examples-v0.1.0 -> 0.1.0)
-    const version = release.tag_name.replace(dbConfig.tagPrefix, '');
+    let version = release.tag_name.replace(dbConfig.tagPrefix, '');
 
     // Find assets
     const dbAsset = release.assets.find((a) => a.name === dbConfig.fileName);
     const manifestAsset = release.assets.find((a) => a.name === dbConfig.manifestName);
 
     if (!dbAsset) return null;
+
+    // If manifest exists, try to get the real version from it
+    // This handles cases where DB version differs from Release tag
+    if (manifestAsset) {
+      try {
+        const manifest = (await fetchJson(manifestAsset.browser_download_url)) as {
+          version: string;
+        };
+        if (manifest && manifest.version) {
+          version = manifest.version;
+        }
+      } catch {
+        // Fallback to tag version if manifest fetch fails
+      }
+    }
 
     return {
       version,

@@ -86,6 +86,36 @@ function log(level: 'info' | 'warn' | 'error' | 'success', message: string): voi
   method(`${colors[level]}${icons[level]} ${message}${reset}`);
 }
 
+function bumpVersion(version: string, type: string): string {
+  const parts = version.split('.').map(Number);
+  if (parts.length !== 3 || parts.some(isNaN)) {
+    log('warn', `Warning: Could not parse version ${version}, defaulting to 0.1.0`);
+    return '0.1.0';
+  }
+
+  let [major, minor, patch] = parts;
+
+  switch (type.toLowerCase()) {
+    case 'major':
+      major++;
+      minor = 0;
+      patch = 0;
+      break;
+    case 'minor':
+      minor++;
+      patch = 0;
+      break;
+    case 'patch':
+      patch++;
+      break;
+    default:
+      log('warn', `Warning: Unknown bump type ${type}, using patch`);
+      patch++;
+  }
+
+  return `${major}.${minor}.${patch}`;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN LOGIC
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -99,13 +129,34 @@ async function generateManifest(): Promise<void> {
 
   // Parse command line arguments
   const args = process.argv.slice(2);
-  const packageJson = JSON.parse(
-    fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8')
-  );
-  const version =
-    args.find((a) => a.startsWith('--version='))?.split('=')[1] || packageJson.version;
+
+  // Read existing manifest if available
+  let existingVersion = '0.1.0';
+  try {
+    if (fs.existsSync(CONFIG.manifestPath)) {
+      const existingManifest = JSON.parse(fs.readFileSync(CONFIG.manifestPath, 'utf-8')) as {
+        version: string;
+      };
+      existingVersion = existingManifest.version;
+    }
+  } catch {
+    // ignore
+  }
+
+  let version = args.find((a) => a.startsWith('--version='))?.split('=')[1] || existingVersion;
+
+  const bumpArg = args.find((a) => a.startsWith('--bump='));
+  if (bumpArg) {
+    const bumpType = bumpArg.split('=')[1];
+    const oldVersion = version;
+    version = bumpVersion(version, bumpType);
+    log('info', `Bumped version: ${oldVersion} -> ${version} (${bumpType})`);
+  }
+
   const changelog =
     args.find((a) => a.startsWith('--changelog='))?.split('=')[1] || 'Mod examples update';
+
+  const releaseTag = args.find((a) => a.startsWith('--release-tag='))?.split('=')[1];
 
   // Check database exists
   if (!fs.existsSync(CONFIG.dbPath)) {
@@ -224,7 +275,9 @@ async function generateManifest(): Promise<void> {
     timestamp: new Date().toISOString(),
     hash,
     size: stats.size,
-    downloadUrl: CONFIG.downloadUrlTemplate.replace('{version}', version),
+    downloadUrl: releaseTag
+      ? `https://github.com/OGMatrix/mcmodding-mcp/releases/download/${releaseTag}/mod-examples.db`
+      : CONFIG.downloadUrlTemplate.replace('{version}', version),
     stats: {
       mods: basicStats.mods,
       examples: basicStats.examples,

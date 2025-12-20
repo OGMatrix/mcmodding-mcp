@@ -40,24 +40,24 @@ describe('DbVersioning', () => {
   });
 
   describe('compareVersions', () => {
-    it('should return 1 when remote is greater (major)', () => {
+    it('should return -1 when remote is greater (major)', () => {
       const versioning = new DbVersioning();
-      expect(versioning.compareVersions('1.0.0', '2.0.0')).toBe(1);
+      expect(versioning.compareVersions('1.0.0', '2.0.0')).toBe(-1);
     });
 
-    it('should return 1 when remote is greater (minor)', () => {
+    it('should return -1 when remote is greater (minor)', () => {
       const versioning = new DbVersioning();
-      expect(versioning.compareVersions('1.0.0', '1.1.0')).toBe(1);
+      expect(versioning.compareVersions('1.0.0', '1.1.0')).toBe(-1);
     });
 
-    it('should return 1 when remote is greater (patch)', () => {
+    it('should return -1 when remote is greater (patch)', () => {
       const versioning = new DbVersioning();
-      expect(versioning.compareVersions('1.0.0', '1.0.1')).toBe(1);
+      expect(versioning.compareVersions('1.0.0', '1.0.1')).toBe(-1);
     });
 
-    it('should return -1 when local is greater', () => {
+    it('should return 1 when local is greater', () => {
       const versioning = new DbVersioning();
-      expect(versioning.compareVersions('2.0.0', '1.0.0')).toBe(-1);
+      expect(versioning.compareVersions('2.0.0', '1.0.0')).toBe(1);
     });
 
     it('should return 0 when versions are equal', () => {
@@ -73,8 +73,8 @@ describe('DbVersioning', () => {
 
     it('should handle complex version comparisons', () => {
       const versioning = new DbVersioning();
-      expect(versioning.compareVersions('1.9.0', '1.10.0')).toBe(1);
-      expect(versioning.compareVersions('0.99.99', '1.0.0')).toBe(1);
+      expect(versioning.compareVersions('1.9.0', '1.10.0')).toBe(-1);
+      expect(versioning.compareVersions('0.99.99', '1.0.0')).toBe(-1);
     });
   });
 
@@ -270,8 +270,8 @@ describe('handleGetExample', () => {
   });
 
   describe('input validation', () => {
-    it('should return error when topic is empty', () => {
-      const result = handleGetExample({ topic: '' });
+    it('should return error when topic is empty', async () => {
+      const result = await handleGetExample({ topic: '' });
 
       expect(result.content[0]).toHaveProperty('type', 'text');
       expect((result.content[0] as { type: string; text: string }).text).toContain(
@@ -279,8 +279,8 @@ describe('handleGetExample', () => {
       );
     });
 
-    it('should return error when topic is whitespace only', () => {
-      const result = handleGetExample({ topic: '   ' });
+    it('should return error when topic is whitespace only', async () => {
+      const result = await handleGetExample({ topic: '   ' });
 
       expect((result.content[0] as { type: string; text: string }).text).toContain(
         'Topic parameter is required'
@@ -289,17 +289,17 @@ describe('handleGetExample', () => {
   });
 
   describe('default values', () => {
-    it('should use java as default language', () => {
+    it('should use java as default language', async () => {
       // The function internally uses java as default
-      const result = handleGetExample({ topic: 'test' });
+      const result = await handleGetExample({ topic: 'test' });
 
       // Result depends on DB availability, but function should not throw
       expect(result).toHaveProperty('content');
     });
 
-    it('should clamp limit to valid range', () => {
+    it('should clamp limit to valid range', async () => {
       // Test with limit beyond max
-      const result = handleGetExample({ topic: 'test', limit: 100 });
+      const result = await handleGetExample({ topic: 'test', limit: 100 });
 
       // Should not throw, limit is clamped internally
       expect(result).toHaveProperty('content');
@@ -701,8 +701,8 @@ describe('Tool Response Format', () => {
       expect(content[0]).toHaveProperty('type');
     });
 
-    it('getExample should return valid CallToolResult', () => {
-      const result = handleGetExample({ topic: 'test' });
+    it('getExample should return valid CallToolResult', async () => {
+      const result = await handleGetExample({ topic: 'test' });
 
       expect(result).toHaveProperty('content');
       expect(Array.isArray(result.content)).toBe(true);
@@ -780,25 +780,25 @@ describe('Version Comparison Edge Cases', () => {
     expect(versioning.compareVersions('1.0', '1.0.0')).toBe(0);
 
     // 1.0 vs 1.0.1 - remote is greater
-    expect(versioning.compareVersions('1.0', '1.0.1')).toBe(1);
+    expect(versioning.compareVersions('1.0', '1.0.1')).toBe(-1);
   });
 
   it('should handle double-digit version numbers', () => {
     const versioning = new DbVersioning();
 
     // 1.9 vs 1.10 - 10 > 9
-    expect(versioning.compareVersions('1.9.0', '1.10.0')).toBe(1);
+    expect(versioning.compareVersions('1.9.0', '1.10.0')).toBe(-1);
 
     // 1.21 vs 1.20
-    expect(versioning.compareVersions('1.21.0', '1.20.0')).toBe(-1);
+    expect(versioning.compareVersions('1.21.0', '1.20.0')).toBe(1);
   });
 
   it('should handle zero versions', () => {
     const versioning = new DbVersioning();
 
-    expect(versioning.compareVersions('0.0.0', '0.0.1')).toBe(1);
+    expect(versioning.compareVersions('0.0.0', '0.0.1')).toBe(-1);
     expect(versioning.compareVersions('0.0.0', '0.0.0')).toBe(0);
-    expect(versioning.compareVersions('0.1.0', '0.0.1')).toBe(-1);
+    expect(versioning.compareVersions('0.1.0', '0.0.1')).toBe(1);
   });
 
   it('should handle pre-release style versions numerically', () => {
@@ -806,7 +806,7 @@ describe('Version Comparison Edge Cases', () => {
 
     // Note: This treats versions purely numerically
     // 1.0.0 vs 2.0.0
-    expect(versioning.compareVersions('1.0.0', '2.0.0')).toBe(1);
+    expect(versioning.compareVersions('1.0.0', '2.0.0')).toBe(-1);
   });
 });
 

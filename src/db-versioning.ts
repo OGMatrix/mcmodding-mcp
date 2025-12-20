@@ -87,7 +87,16 @@ export class DbVersioning {
         return null;
       }
 
-      return (await manifestResponse.json()) as DbVersionManifest;
+      const manifest = (await manifestResponse.json()) as DbVersionManifest;
+
+      // Find the database asset in the release to ensure we have the correct download URL
+      // This overrides the URL in the manifest which might be outdated or incorrect
+      const dbAsset = release.assets.find((a) => a.name === 'mcmodding-docs.db');
+      if (dbAsset) {
+        manifest.downloadUrl = dbAsset.browser_download_url;
+      }
+
+      return manifest;
     } catch (error) {
       console.error('[DbVersioning] Error fetching remote manifest:', error);
       return null;
@@ -96,7 +105,7 @@ export class DbVersioning {
 
   /**
    * Compare semantic versions
-   * Returns: 1 if remote > local, -1 if local > remote, 0 if equal
+   * Returns: -1 if local < remote, 1 if local > remote, 0 if equal
    */
   compareVersions(local: string, remote: string): number {
     const localParts = local.split('.').map((p) => parseInt(p, 10));
@@ -105,8 +114,8 @@ export class DbVersioning {
     for (let i = 0; i < 3; i++) {
       const l = localParts[i] ?? 0;
       const r = remoteParts[i] ?? 0;
-      if (r > l) return 1;
-      if (l > r) return -1;
+      if (l < r) return -1;
+      if (l > r) return 1;
     }
     return 0;
   }
@@ -223,7 +232,8 @@ export class DbVersioning {
   async createManifest(
     version: string,
     type: 'incremental' | 'full',
-    changelog: string
+    changelog: string,
+    releaseTag?: string
   ): Promise<DbVersionManifest> {
     try {
       if (!fs.existsSync(this.dbPath)) {
@@ -233,13 +243,18 @@ export class DbVersioning {
       const hash = await this.calculateFileHash(this.dbPath);
       const stats = fs.statSync(this.dbPath);
 
+      // Use provided release tag or fallback to version-based tag (legacy behavior)
+      const downloadUrl = releaseTag
+        ? `https://github.com/OGMatrix/mcmodding-mcp/releases/download/${releaseTag}/mcmodding-docs.db`
+        : `https://github.com/OGMatrix/mcmodding-mcp/releases/download/v${version}/mcmodding-docs.db`;
+
       const manifest: DbVersionManifest = {
         version,
         timestamp: new Date().toISOString(),
         type,
         hash,
         size: stats.size,
-        downloadUrl: `https://github.com/OGMatrix/mcmodding-mcp/releases/download/v${version}/mcmodding-docs.db`,
+        downloadUrl,
         changelog,
       };
 

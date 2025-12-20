@@ -1,9 +1,9 @@
 {
-  "version": "0.1.1",
-  "timestamp": "2025-12-16T17:44:59.537Z",
-  "hash": "63d5f2cf0c3b4de1b183af3f567eb8931e71b64a06888af8b971a3747da441b7",
-  "size": 172032,
-  "downloadUrl": "https://github.com/OGMatrix/mcmodding-mcp/releases/download/examples-v0.1.1/mod-examples.db",
+  "version": "0.2.0",
+  "timestamp": "2025-12-20T16:28:58.319Z",
+  "hash": "bf642eee9e8293f52be5b61d3e94790f16be6a837d81b69cd4a3c93adf305732",
+  "size": 200704,
+  "downloadUrl": "https://github.com/OGMatrix/mcmodding-mcp/releases/download/examples-v0.2.0/mod-examples.db",
   "stats": {
     "mods": 1,
     "examples": 3,
