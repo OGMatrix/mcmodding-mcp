@@ -4,6 +4,7 @@
  */
 
 import { DocumentStore } from '../indexer/store.js';
+import { EmbeddingGenerator } from '../indexer/embeddings.js';
 import {
   tokenizeQuery,
   calculateRelevanceScore,
@@ -12,6 +13,17 @@ import {
   type ScoredResult,
 } from './search-utils.js';
 import path from 'path';
+
+// Singleton instance for the embedding generator
+let embeddingGeneratorInstance: EmbeddingGenerator | null = null;
+
+async function getEmbeddingGenerator(): Promise<EmbeddingGenerator> {
+  if (!embeddingGeneratorInstance) {
+    embeddingGeneratorInstance = new EmbeddingGenerator();
+    await embeddingGeneratorInstance.initialize();
+  }
+  return embeddingGeneratorInstance;
+}
 
 export interface CodeExample {
   code: string;
@@ -71,7 +83,7 @@ export class ExampleService {
   /**
    * Get code examples using intelligent multi-strategy search
    */
-  getExamples(options: ExampleSearchOptions): CodeExample[] {
+  async getExamples(options: ExampleSearchOptions): Promise<CodeExample[]> {
     const { topic, language, minecraftVersion, loader, category, limit = 5 } = options;
 
     console.error(`[ExampleService] Searching for: "${topic}"`);
@@ -84,6 +96,19 @@ export class ExampleService {
 
     // Collect results from multiple strategies
     const allResults: ScoredResult<CodeBlockResult>[] = [];
+
+    // Strategy 0: Semantic Search (Embeddings)
+    try {
+      const semanticResults = await this.searchViaEmbeddings(topic, {
+        loader,
+        minecraftVersion,
+        category,
+      });
+      allResults.push(...semanticResults);
+      console.error(`[ExampleService] Strategy 0 (semantic): ${semanticResults.length} results`);
+    } catch (error) {
+      console.error('[ExampleService] Semantic search failed (skipping):', error);
+    }
 
     // Strategy 1: Search chunks with FTS/LIKE fallback, then get code blocks
     const chunkResults = this.searchViaChunks(query, {
@@ -164,6 +189,83 @@ export class ExampleService {
   }
 
   /**
+   * Strategy 0: Semantic Search using Embeddings
+   */
+  private async searchViaEmbeddings(
+    topic: string,
+    options: {
+      loader?: string;
+      minecraftVersion?: string;
+      category?: string;
+    }
+  ): Promise<ScoredResult<CodeBlockResult>[]> {
+    const generator = await getEmbeddingGenerator();
+    const embedding = await generator.generateEmbedding(topic);
+
+    // Find similar chunks (text or code)
+    // We ask for more results because we'll filter for code blocks later
+    const similarChunks = this.store.findSimilarChunks(embedding, {
+      limit: 20,
+      loader: options.loader,
+      minecraftVersion: options.minecraftVersion,
+      category: options.category,
+    });
+
+    const results: ScoredResult<CodeBlockResult>[] = [];
+    const processedDocIds = new Set<number>();
+
+    for (const chunk of similarChunks) {
+      // Avoid processing the same document multiple times from different chunks
+      if (processedDocIds.has(chunk.document_id)) continue;
+      processedDocIds.add(chunk.document_id);
+
+      // Get all code blocks for the document of the similar chunk
+      const codeBlocks = this.store.getCodeBlocksForDocument(chunk.document_id);
+
+      for (const block of codeBlocks) {
+        // Calculate a score based on semantic similarity of the parent chunk
+        // We use the similarity score from the embedding search
+
+        let score = chunk.similarity || 0; // similarity is 0-1 (cosine)
+
+        // Boost if the code block is in the same section as the matched text chunk
+        if (block.section_heading === chunk.section_heading) {
+          score *= 1.2;
+        }
+
+        // Normalize to our 0-100 scale (cosine is -1 to 1, but usually 0-1 for text)
+        // Let's assume 0.7 is a good match.
+        // We map 0.5-1.0 to 50-100.
+        const normalizedScore = Math.max(0, (score - 0.3) * (100 / 0.7));
+
+        results.push({
+          item: {
+            id: block.id,
+            language: block.language,
+            code: block.code,
+            caption: block.caption,
+            section_heading: block.section_heading,
+            section_level: block.section_level,
+            section_content: block.section_content,
+            document_id: block.document_id,
+            document_title: block.document_title,
+            document_url: block.document_url,
+            category: block.category,
+            loader: block.loader,
+            minecraft_version: block.minecraft_version,
+          },
+          score: normalizedScore,
+          matchReasons: [
+            `Semantic match with "${chunk.section_heading}" (${(score * 100).toFixed(0)}%)`,
+          ],
+        });
+      }
+    }
+
+    return results;
+  }
+
+  /**
    * Strategy 1: Search via chunks (FTS + LIKE fallback)
    */
   private searchViaChunks(
@@ -184,7 +286,7 @@ export class ExampleService {
       loader: options.loader,
       minecraftVersion: options.minecraftVersion,
       category: options.category,
-      limit: 30,
+      limit: 100,
     });
 
     // Get code blocks for each matching chunk's document
@@ -243,7 +345,7 @@ export class ExampleService {
       language: options.language,
       loader: options.loader,
       minecraftVersion: options.minecraftVersion,
-      limit: 30,
+      limit: 50,
     });
 
     for (const block of codeBlocks) {

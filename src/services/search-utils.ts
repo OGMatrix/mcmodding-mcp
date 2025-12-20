@@ -4,6 +4,65 @@
  */
 
 /**
+ * Common English stopwords to filter out
+ */
+const STOPWORDS = new Set([
+  'how',
+  'to',
+  'in',
+  'a',
+  'an',
+  'the',
+  'for',
+  'of',
+  'with',
+  'on',
+  'at',
+  'by',
+  'from',
+  'is',
+  'are',
+  'was',
+  'were',
+  'be',
+  'been',
+  'being',
+  'it',
+  'that',
+  'this',
+  'these',
+  'those',
+  'can',
+  'do',
+  'does',
+  'did',
+  'will',
+  'would',
+  'should',
+  'could',
+  'may',
+  'might',
+  'must',
+]);
+
+/**
+ * High-frequency domain terms that should have lower weight
+ */
+const COMMON_TERMS = new Set([
+  'fabric',
+  'neoforge',
+  'minecraft',
+  'mod',
+  'loader',
+  'java',
+  'api',
+  'version',
+  'game',
+  'server',
+  'client',
+]);
+
+/**
  * Minecraft modding domain-specific synonyms and related terms
  */
 const MINECRAFT_SYNONYMS: Record<string, string[]> = {
@@ -98,7 +157,8 @@ export function tokenizeQuery(query: string): TokenizedQuery {
     .toLowerCase()
     .split(/[\s\-_.,;:!?()[\]{}'"]+/)
     .filter((t) => t.length > 1)
-    .map((t) => t.replace(/[^a-z0-9]/g, ''));
+    .map((t) => t.replace(/[^a-z0-9]/g, ''))
+    .filter((t) => !STOPWORDS.has(t)); // Filter stopwords
 
   // Expand tokens with synonyms
   const expandedSet = new Set<string>();
@@ -176,8 +236,14 @@ function buildFtsQuery(tokens: string[], expandedTokens: string[]): string {
   }
 
   // Add individual tokens
-  for (const term of validTerms) {
-    parts.push(term);
+  // Use AND for the first few important tokens to ensure relevance
+  // But fallback to OR if we have many tokens to avoid zero results
+  if (validTerms.length <= 3) {
+    // For short queries, try to match ALL terms
+    parts.push(validTerms.join(' AND '));
+  } else {
+    // For longer queries, use OR but rely on ranking
+    parts.push(validTerms.join(' OR '));
   }
 
   return parts.join(' OR ');
@@ -278,39 +344,43 @@ export function calculateRelevanceScore(
   for (const token of query.tokens) {
     if (token.length < 2) continue;
 
+    // Determine weight based on term frequency
+    const isCommon = COMMON_TERMS.has(token);
+    const weightMultiplier = isCommon ? 0.1 : 1.0;
+
     // Title matches (high value)
     if (titleLower.includes(token)) {
-      score += 20;
+      score += 20 * weightMultiplier;
       if (!reasons.includes('token in title')) reasons.push('token in title');
     }
 
     // Heading matches (high value)
     if (headingLower.includes(token)) {
-      score += 18;
+      score += 18 * weightMultiplier;
       if (!reasons.includes('token in heading')) reasons.push('token in heading');
     }
 
     // Caption matches
     if (captionLower.includes(token)) {
-      score += 15;
+      score += 15 * weightMultiplier;
       if (!reasons.includes('token in caption')) reasons.push('token in caption');
     }
 
     // URL/path matches (indicates topic relevance)
     if (urlLower.includes(token)) {
-      score += 12;
+      score += 12 * weightMultiplier;
       if (!reasons.includes('token in URL')) reasons.push('token in URL');
     }
 
     // Category matches
     if (categoryLower.includes(token)) {
-      score += 10;
+      score += 10 * weightMultiplier;
       if (!reasons.includes('token in category')) reasons.push('token in category');
     }
 
     // Content matches
     if (contentLower.includes(token)) {
-      score += 5;
+      score += 5 * weightMultiplier;
       if (!reasons.includes('token in content')) reasons.push('token in content');
     }
   }
