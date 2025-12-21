@@ -23,8 +23,8 @@ import {
 } from './tools/modExamples.js';
 
 // Check for CLI commands
-if (process.argv.includes('install')) {
-  const { runInstaller } = await import('./cli/install.js');
+if (process.argv.includes('manage')) {
+  const { runInstaller } = await import('./cli/manage.js');
   await runInstaller();
   process.exit(0);
 }
@@ -192,7 +192,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
 
     case 'get_example': {
-      return handleGetExample({
+      return await handleGetExample({
         topic: (args?.topic as string) || '',
         language: args?.language as string | undefined,
         loader: args?.loader as string | undefined,
@@ -274,6 +274,7 @@ async function main() {
     console.error('[DbVersioning] Checking for database updates...');
     const versioning = new DbVersioning();
     const updated = await versioning.autoUpdate();
+    console.error('[DbVersioning] Update check complete');
     if (updated) {
       console.error('[DbVersioning] Database updated. Restart recommended for best results.');
     } else {

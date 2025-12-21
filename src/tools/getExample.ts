@@ -19,7 +19,7 @@ export interface GetExampleParams {
  * Handle get_example tool request
  * Returns formatted code examples with full context for AI
  */
-export function handleGetExample(params: GetExampleParams): CallToolResult {
+export async function handleGetExample(params: GetExampleParams): Promise<CallToolResult> {
   try {
     const { topic, language = 'java', loader, minecraftVersion, category, limit = 5 } = params;
 
@@ -48,7 +48,7 @@ export function handleGetExample(params: GetExampleParams): CallToolResult {
     console.error(`[get_example] Searching for: "${topic}" (${language}, limit: ${finalLimit})`);
 
     // Get examples (synchronous - uses SQLite)
-    const examples = exampleService.getExamples({
+    const examples = await exampleService.getExamples({
       topic,
       language,
       loader,

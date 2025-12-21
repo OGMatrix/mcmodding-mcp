@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-undef, no-control-regex, no-unused-vars */
 
 /**
  * MCModding-MCP Postinstall Script
@@ -291,10 +292,10 @@ class ProgressDisplay {
   }
 
   clear() {
-    if (isColorSupported) {
-      for (let i = 0; i < this.lines; i++) {
-        process.stdout.write(c.cursorUp + c.clearLine);
-      }
+    if (isColorSupported && this.lines > 0) {
+      // Move cursor up and clear all lines in a single write operation
+      const clearSequence = (c.cursorUp + c.clearLine).repeat(this.lines);
+      process.stdout.write(clearSequence);
     }
     this.lines = 0;
   }
@@ -309,7 +310,7 @@ class ProgressDisplay {
 
   update(downloaded, total, phase = 'download') {
     const now = Date.now();
-    if (now - this.lastUpdate < 50) return; // Throttle updates
+    if (now - this.lastUpdate < 100) return; // Throttle updates
     this.lastUpdate = now;
 
     this.clear();
@@ -349,11 +350,9 @@ class ProgressDisplay {
 
     lines.push(statsLine);
 
-    // Print all lines
-    lines.forEach((line) => {
-      console.log(line);
-      this.lines++;
-    });
+    // Print all lines as a single write operation to prevent flickering
+    this.lines = lines.length;
+    process.stdout.write(lines.join('\n') + '\n');
   }
 
   finish(success = true, message = '') {
@@ -737,6 +736,13 @@ async function main() {
       if (!manifestAsset) throw new Error('No manifest found in release');
 
       manifest = await fetchManifest(manifestAsset.browser_download_url);
+
+      // Find the database asset in the release to ensure we have the correct download URL
+      // This overrides the URL in the manifest which might be outdated or incorrect
+      const dbAsset = release.assets.find((a) => a.name === CONFIG.dbFileName);
+      if (dbAsset) {
+        manifest.downloadUrl = dbAsset.browser_download_url;
+      }
     } catch (error) {
       process.stdout.write(c.cursorUp + c.clearLine);
       printStepIndicator(2, 4, `Failed to fetch release info: ${error.message}`, 'error');

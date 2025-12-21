@@ -445,7 +445,7 @@ export class SearchService {
       loader: options.loader,
       minecraftVersion: options.minecraftVersion,
       category: options.category,
-      limit: 50,
+      limit: 100,
     });
 
     // Group chunks by document and score
@@ -525,7 +525,7 @@ export class SearchService {
       loader: options.loader,
       minecraftVersion: options.minecraftVersion,
       category: options.category,
-      limit: 30,
+      limit: 50,
     });
 
     for (const doc of docs) {
@@ -568,7 +568,7 @@ export class SearchService {
       loader: options.loader,
       minecraftVersion: options.minecraftVersion,
       category: options.category,
-      limit: 30,
+      limit: 50,
     });
 
     // Group by document

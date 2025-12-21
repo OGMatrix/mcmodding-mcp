@@ -64,6 +64,42 @@ That's it! Your AI assistant now has access to Minecraft modding documentation.
 
 ---
 
+## Database Management
+
+Manage your documentation databases with the built-in CLI:
+
+```bash
+# Run the database manager
+npx mcmodding-mcp manage
+```
+
+The interactive manager allows you to:
+
+- **Install** - Download databases you don't have yet
+- **Update** - Check for and apply database updates
+- **Re-download** - Restore deleted or corrupted databases
+
+### Available Databases
+
+| Database                   | Description                                                 | Size    |
+| -------------------------- | ----------------------------------------------------------- | ------- |
+| **Documentation Database** | Core Fabric & NeoForge documentation (installed by default) | ~520 MB |
+| **Mod Examples Database**  | 1000+ high-quality modding examples                         | ~30 MB  |
+
+The manager shows version information and highlights available updates:
+
+```
+◉ 📚 Documentation Database [core]
+     ✔ Installed: v0.2.1 → ↻ Update: v0.2.2 [52.3 MB]
+     Core Fabric & NeoForge documentation - installed by default
+
+○ 🧩 Mod Examples Database
+     ⚠ Not installed → Available: v0.1.0 [28.1 MB]
+     1000+ high-quality modding examples for Fabric & NeoForge
+```
+
+---
+
 ## Available Tools
 
 The MCP server provides four powerful tools:
@@ -186,6 +222,9 @@ npm run format           # Prettier formatting
 npm run build            # Build TypeScript
 npm run build:prod       # Build with fresh documentation index
 npm run index-docs       # Index documentation with embeddings
+
+# Database Management
+npx mcmodding-mcp manage # Interactive database installer/updater
 ```
 
 ### Project Structure
@@ -316,6 +355,10 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes and releases.
 
 ---
 

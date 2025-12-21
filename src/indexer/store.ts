@@ -597,10 +597,10 @@ export class DocumentStore {
       FROM chunks_fts
       JOIN chunks c ON chunks_fts.rowid = c.rowid
       JOIN documents d ON c.document_id = d.id
-      WHERE chunks_fts MATCH ? AND d.minecraft_version = ?
+      WHERE chunks_fts MATCH ? AND (d.minecraft_version = ? OR d.minecraft_version LIKE ?)
     `;
 
-    const params: (string | number)[] = [query, version];
+    const params: (string | number)[] = [query, version, `${version}.%`];
 
     if (category && category !== 'all') {
       sql += ' AND d.category = ?';
@@ -690,8 +690,9 @@ export class DocumentStore {
     }
 
     if (minecraftVersion) {
-      sql += ' AND d.minecraft_version = ?';
-      params.push(minecraftVersion);
+      // Prefix match for version (e.g. "1.21" matches "1.21.4")
+      sql += ' AND (d.minecraft_version = ? OR d.minecraft_version LIKE ?)';
+      params.push(minecraftVersion, `${minecraftVersion}.%`);
     }
 
     if (loader) {
@@ -813,8 +814,9 @@ export class DocumentStore {
     }
 
     if (minecraftVersion) {
-      sql += ' AND d.minecraft_version = ?';
-      params.push(minecraftVersion);
+      // Prefix match for version (e.g. "1.21" matches "1.21.4")
+      sql += ' AND (d.minecraft_version = ? OR d.minecraft_version LIKE ?)';
+      params.push(minecraftVersion, `${minecraftVersion}.%`);
     }
 
     sql += ' ORDER BY d.id, s.order_num LIMIT ?';
@@ -879,8 +881,9 @@ export class DocumentStore {
     }
 
     if (minecraftVersion) {
-      sql += ' AND d.minecraft_version = ?';
-      params.push(minecraftVersion);
+      // Prefix match for version (e.g. "1.21" matches "1.21.4")
+      sql += ' AND (d.minecraft_version = ? OR d.minecraft_version LIKE ?)';
+      params.push(minecraftVersion, `${minecraftVersion}.%`);
     }
 
     if (category && category !== 'all') {
@@ -977,16 +980,10 @@ export class DocumentStore {
 
     // For version, we might want to handle it in the service layer or here.
     // If passed here, we assume it's a filter.
-    // Let's support LIKE for version to allow "1.21%" matching "1.21.4"
+    // Support exact match OR prefix match (e.g. "1.21" matches "1.21.4")
     if (minecraftVersion) {
-      // If it contains %, use LIKE, else exact
-      if (minecraftVersion.includes('%')) {
-        sql += ' AND d.minecraft_version LIKE ?';
-        params.push(minecraftVersion);
-      } else {
-        sql += ' AND d.minecraft_version = ?';
-        params.push(minecraftVersion);
-      }
+      sql += ' AND (d.minecraft_version = ? OR d.minecraft_version LIKE ?)';
+      params.push(minecraftVersion, `${minecraftVersion}.%`);
     }
 
     const stmt = this.db.prepare(sql);
@@ -1105,8 +1102,9 @@ export class DocumentStore {
         }
 
         if (minecraftVersion) {
-          sql += ' AND d.minecraft_version = ?';
-          params.push(minecraftVersion);
+          // Prefix match for version (e.g. "1.21" matches "1.21.4")
+          sql += ' AND (d.minecraft_version = ? OR d.minecraft_version LIKE ?)';
+          params.push(minecraftVersion, `${minecraftVersion}.%`);
         }
 
         if (category && category !== 'all') {
@@ -1170,10 +1168,10 @@ export class DocumentStore {
         sql += ' AND d.loader = ?';
         params.push(loader);
       }
-
       if (minecraftVersion) {
-        sql += ' AND d.minecraft_version = ?';
-        params.push(minecraftVersion);
+        // Prefix match for version (e.g. "1.21" matches "1.21.4")
+        sql += ' AND (d.minecraft_version = ? OR d.minecraft_version LIKE ?)';
+        params.push(minecraftVersion, `${minecraftVersion}.%`);
       }
 
       if (category && category !== 'all') {
@@ -1234,10 +1232,10 @@ export class DocumentStore {
       sql += ' AND d.loader = ?';
       params.push(loader);
     }
-
     if (minecraftVersion) {
-      sql += ' AND d.minecraft_version = ?';
-      params.push(minecraftVersion);
+      // Prefix match for version (e.g. "1.21" matches "1.21.4")
+      sql += ' AND (d.minecraft_version = ? OR d.minecraft_version LIKE ?)';
+      params.push(minecraftVersion, `${minecraftVersion}.%`);
     }
 
     if (category && category !== 'all') {
@@ -1315,8 +1313,9 @@ export class DocumentStore {
     }
 
     if (minecraftVersion) {
-      sql += ' AND d.minecraft_version = ?';
-      params.push(minecraftVersion);
+      // Prefix match for version (e.g. "1.21" matches "1.21.4")
+      sql += ' AND (d.minecraft_version = ? OR d.minecraft_version LIKE ?)';
+      params.push(minecraftVersion, `${minecraftVersion}.%`);
     }
 
     sql += ` ORDER BY d.id, s.order_num LIMIT ?`;
@@ -1387,8 +1386,9 @@ export class DocumentStore {
     }
 
     if (minecraftVersion) {
-      sql += ' AND d.minecraft_version = ?';
-      params.push(minecraftVersion);
+      // Prefix match for version (e.g. "1.21" matches "1.21.4")
+      sql += ' AND (d.minecraft_version = ? OR d.minecraft_version LIKE ?)';
+      params.push(minecraftVersion, `${minecraftVersion}.%`);
     }
 
     sql += ` ORDER BY d.id, s.order_num LIMIT ?`;
@@ -1396,6 +1396,48 @@ export class DocumentStore {
 
     const stmt = this.db.prepare(sql);
     return stmt.all(...params) as Array<{
+      id: number;
+      language: string;
+      code: string;
+      caption: string | null;
+      section_heading: string;
+      section_level: number;
+      section_content: string;
+      document_id: number;
+      document_title: string;
+      document_url: string;
+      category: string;
+      loader: string;
+      minecraft_version: string | null;
+    }>;
+  }
+
+  /**
+   * Get all code blocks for a specific document
+   */
+  getCodeBlocksForDocument(documentId: number) {
+    const sql = `
+      SELECT
+        cb.id,
+        cb.language,
+        cb.code,
+        cb.caption,
+        s.heading as section_heading,
+        s.level as section_level,
+        s.content as section_content,
+        d.id as document_id,
+        d.title as document_title,
+        d.url as document_url,
+        d.category,
+        d.loader,
+        d.minecraft_version
+      FROM code_blocks cb
+      JOIN sections s ON cb.section_id = s.id
+      JOIN documents d ON s.document_id = d.id
+      WHERE d.id = ?
+    `;
+    const stmt = this.db.prepare(sql);
+    return stmt.all(documentId) as Array<{
       id: number;
       language: string;
       code: string;
