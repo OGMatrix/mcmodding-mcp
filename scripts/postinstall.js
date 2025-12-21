@@ -21,7 +21,7 @@ const __dirname = path.dirname(__filename);
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const CONFIG = {
-  repoUrl: 'https://api.github.com/repos/OGMatrix/mcmodding-mcp/releases/latest',
+  repoUrl: 'https://api.github.com/repos/OGMatrix/mcmodding-mcp/releases',
   dataDir: path.join(__dirname, '..', 'data'),
   dbFileName: 'mcmodding-docs.db',
   manifestFileName: 'db-manifest.json',
@@ -653,7 +653,19 @@ async function downloadWithProgress(url, destPath, onProgress) {
 
 async function fetchReleaseInfo() {
   const response = await httpsGet(CONFIG.repoUrl);
-  return JSON.parse(response);
+  const releases = JSON.parse(response);
+
+  // Find the first release that has the required assets
+  for (const release of releases) {
+    const hasManifest = release.assets.some((a) => a.name === 'db-manifest.json');
+    const hasDb = release.assets.some((a) => a.name === 'mcmodding-docs.db');
+
+    if (hasManifest && hasDb) {
+      return release;
+    }
+  }
+
+  throw new Error('No suitable release found with database artifacts');
 }
 
 async function fetchManifest(manifestUrl) {
