@@ -22,12 +22,7 @@ jobs:
         with:
           ref: dev # Checkout dev branch to commit changes later
           fetch-depth: 0
-          lfs: true
-
-      - name: Setup Git LFS
-        run: |
-          git lfs install
-          git lfs pull
+          lfs: false # Disable LFS to save bandwidth (we rebuild the DB anyway)
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

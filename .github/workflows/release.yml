@@ -32,12 +32,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: prod
-          lfs: true
-
-      - name: Setup Git LFS
-        run: |
-          git lfs install
-          git lfs pull
+          lfs: false # Disable LFS to save bandwidth (DB not needed for build/publish)
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
