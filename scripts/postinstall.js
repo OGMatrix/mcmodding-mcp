@@ -532,14 +532,20 @@ function printWelcomeScreen() {
 
 function httpsGet(url, options = {}) {
   return new Promise((resolve, reject) => {
+    const headers = {
+      'User-Agent': CONFIG.userAgent,
+      Accept: 'application/vnd.github.v3+json',
+      ...options.headers,
+    };
+
+    if (process.env.GITHUB_TOKEN) {
+      headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+    }
+
     const req = https.get(
       url,
       {
-        headers: {
-          'User-Agent': CONFIG.userAgent,
-          Accept: 'application/vnd.github.v3+json',
-          ...options.headers,
-        },
+        headers,
       },
       (res) => {
         // Handle redirects
@@ -581,12 +587,18 @@ async function downloadWithProgress(url, destPath, onProgress) {
 
     const makeRequest = (requestUrl) => {
       const urlObj = new URL(requestUrl);
+      const headers = {
+        'User-Agent': CONFIG.userAgent,
+      };
+
+      if (process.env.GITHUB_TOKEN) {
+        headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+      }
+
       const options = {
         hostname: urlObj.hostname,
         path: urlObj.pathname + urlObj.search,
-        headers: {
-          'User-Agent': CONFIG.userAgent,
-        },
+        headers,
       };
 
       https

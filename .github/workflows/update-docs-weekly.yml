@@ -22,7 +22,6 @@ jobs:
         with:
           ref: dev # Checkout dev branch to commit changes later
           fetch-depth: 0
-          lfs: false # Disable LFS to save bandwidth (we rebuild the DB anyway)
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -37,6 +36,8 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get Latest Release Tag
         id: get_release
