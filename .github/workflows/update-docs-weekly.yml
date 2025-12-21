@@ -81,7 +81,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "weekly documentation update [skip ci]"
+            git commit -m "Weekly documentation update [skip ci]" --no-verify
             git push origin dev
           fi
 
