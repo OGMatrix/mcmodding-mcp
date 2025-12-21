@@ -1,3 +1,11 @@
+## [0.2.2](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.2.1...v0.2.2) (2025-12-17)
+
+### Bug Fixes
+
+* downgrade semantic-release to support node 20 ([ee71928](https://github.com/OGMatrix/mcmodding-mcp/commit/ee71928bbbaeab7d59da4c4ad86ef42d19a40d9a))
+* setup docker build and version automation ([47bb1e4](https://github.com/OGMatrix/mcmodding-mcp/commit/47bb1e42f71d5994cdb6c61ebaa5245c1a89eb5c))
+* update semantic-release to resolve peer dependency conflict ([b31c18c](https://github.com/OGMatrix/mcmodding-mcp/commit/b31c18c5264f692eee1d70ac8aea1fac66475489))
+
 ## [0.2.1](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.2.0...v0.2.1) (2025-12-16)
 
 ### Bug Fixes
