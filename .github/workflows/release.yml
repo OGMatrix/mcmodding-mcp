@@ -32,7 +32,6 @@ jobs:
         with:
           fetch-depth: 0
           ref: prod
-          lfs: false # Disable LFS to save bandwidth (DB not needed for build/publish)
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -48,6 +47,8 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run validation
         run: npm run validate
