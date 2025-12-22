@@ -221,6 +221,16 @@ async function fetchJson(url: string): Promise<unknown> {
     };
     https
       .get(url, options, (res) => {
+        // Handle redirects (GitHub release assets redirect to the actual download URL)
+        if (res.statusCode === 301 || res.statusCode === 302) {
+          if (!res.headers.location) {
+            return reject(new Error('Redirect location missing'));
+          }
+          res.resume();
+          fetchJson(res.headers.location).then(resolve).catch(reject);
+          return;
+        }
+
         if (res.statusCode !== 200) {
           res.resume();
           return reject(new Error(`Request failed with status code ${res.statusCode}`));
