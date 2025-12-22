@@ -1,3 +1,18 @@
+## [0.3.0](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.2.2...v0.3.0) (2025-12-21)
+
+### Features
+
+* improved searching ([214a308](https://github.com/OGMatrix/mcmodding-mcp/commit/214a308413022ecec88c9f4ad98908a90349c4cc))
+* improved versioning and managing and made db version independent ([c5a8a94](https://github.com/OGMatrix/mcmodding-mcp/commit/c5a8a942c468af1fb144e274cae394f27807c315))
+
+### Bug Fixes
+
+* fixed flickering, upgraded manage command and renamed it from "install" ([fff1578](https://github.com/OGMatrix/mcmodding-mcp/commit/fff15781377eac5d4e453644dbdcad50eb8e6cc3))
+
+### CI/CD
+
+* disable LFS fetch in workflows to save bandwidth ([33dd7fe](https://github.com/OGMatrix/mcmodding-mcp/commit/33dd7fe6e89f91e680c41e7423930f94a94f620c))
+
 ## [0.2.2](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.2.1...v0.2.2) (2025-12-17)
 
 ### Bug Fixes
