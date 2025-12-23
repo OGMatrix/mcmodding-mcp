@@ -1,6 +1,6 @@
 {
   "name": "mcmodding-mcp",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "MCP server providing AI assistants with up-to-date Minecraft modding documentation for Fabric and NeoForge",
   "type": "module",
   "main": "dist/index.js",

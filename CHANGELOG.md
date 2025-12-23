@@ -1,3 +1,9 @@
+## [0.3.1](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.3.0...v0.3.1) (2025-12-23)
+
+### Bug Fixes
+
+* handle HTTP redirects in fetchJson for GitHub release assets ([9b0bbef](https://github.com/OGMatrix/mcmodding-mcp/commit/9b0bbef2f495d0260cefc6bc7d8d2791960a31d3))
+
 ## [0.3.0](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.2.2...v0.3.0) (2025-12-21)
 
 ### Features
