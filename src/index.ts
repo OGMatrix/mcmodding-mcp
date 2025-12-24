@@ -13,6 +13,7 @@ import { handleSearchDocs } from './tools/searchDocs.js';
 import { handleExplainConcept } from './tools/explainConcept.js';
 import { DbVersioning } from './db-versioning.js';
 import { ModExamplesService } from './services/mod-examples-service.js';
+import { MappingsService } from './services/mappings-service.js';
 import {
   MOD_EXAMPLES_TOOLS,
   handleSearchModExamples,
@@ -21,6 +22,15 @@ import {
   handleListModCategories,
   handleGetModPatterns,
 } from './tools/modExamples.js';
+import {
+  MAPPINGS_TOOLS,
+  handleSearchMappings,
+  handleGetClassDetails,
+  handleLookupObfuscated,
+  handleGetMethodSignature,
+  handleListMappingVersions,
+  handleBrowsePackage,
+} from './tools/mappings.js';
 
 // Check for CLI commands
 if (process.argv.includes('manage')) {
@@ -172,6 +182,12 @@ server.setRequestHandler(ListToolsRequestSchema, () => {
     console.error('[MCP] Mod examples database available - additional tools registered');
   }
 
+  // Add mappings tools if database is available
+  if (MappingsService.isAvailable()) {
+    tools.push(...MAPPINGS_TOOLS);
+    console.error('[MCP] Parchment mappings database available - additional tools registered');
+  }
+
   return { tools };
 });
 
@@ -247,6 +263,55 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
     case 'get_mod_patterns': {
       return handleGetModPatterns();
+    }
+
+    // Mappings tools (only work if database is available)
+    case 'search_mappings': {
+      return handleSearchMappings({
+        query: (args?.query as string) || '',
+        type: args?.type as 'class' | 'method' | 'field' | 'all' | undefined,
+        minecraft_version: args?.minecraft_version as string | undefined,
+        package_filter: args?.package_filter as string | undefined,
+        include_javadoc: args?.include_javadoc as boolean | undefined,
+        limit: args?.limit as number | undefined,
+      });
+    }
+
+    case 'get_class_details': {
+      return handleGetClassDetails({
+        class_name: (args?.class_name as string) || '',
+        minecraft_version: args?.minecraft_version as string | undefined,
+        include_methods: args?.include_methods as boolean | undefined,
+        include_fields: args?.include_fields as boolean | undefined,
+      });
+    }
+
+    case 'lookup_obfuscated': {
+      return handleLookupObfuscated({
+        obfuscated_name: (args?.obfuscated_name as string) || '',
+        minecraft_version: args?.minecraft_version as string | undefined,
+      });
+    }
+
+    case 'get_method_signature': {
+      return handleGetMethodSignature({
+        class_name: (args?.class_name as string) || '',
+        method_name: (args?.method_name as string) || '',
+        minecraft_version: args?.minecraft_version as string | undefined,
+      });
+    }
+
+    case 'list_mapping_versions': {
+      return handleListMappingVersions({
+        include_stats: args?.include_stats as boolean | undefined,
+      });
+    }
+
+    case 'browse_package': {
+      return handleBrowsePackage({
+        package_name: (args?.package_name as string) || '',
+        minecraft_version: args?.minecraft_version as string | undefined,
+      });
     }
 
     default:
