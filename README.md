@@ -107,7 +107,7 @@ The manager shows version information and highlights available updates:
 
 ```
 ◉ 📚 Documentation Database [core]
-     ✔ Installed: v0.2.1 → ↻ Update: v0.2.2 [52.3 MB]
+     ✔ Installed: v0.2.1 → ↻ Update: v0.2.2 [520.3 MB]
      Core Fabric & NeoForge documentation - installed by default
 
 ○ 🗺️ Parchment Mappings Database ✨ NEW
@@ -137,7 +137,7 @@ Search documentation with smart filtering.
   query: "how to register custom items",
   category: "items",           // Optional filter
   loader: "fabric",            // fabric | neoforge
-  minecraft_version: "1.21.4"  // Optional version filter
+  minecraft_version: "1.21.10"  // Optional version filter
 }
 ```
 
@@ -196,7 +196,7 @@ Search Minecraft class, method, and field mappings with parameter names and Java
 {
   query: "BlockEntity",
   type: "class",              // class | method | field | all
-  minecraft_version: "1.21.4",
+  minecraft_version: "1.21.10",
   include_javadoc: true
 }
 ```
