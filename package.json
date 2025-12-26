@@ -38,7 +38,13 @@
     "release": "npm run build:prod && npm version",
     "validate": "npm run typecheck && npm run lint && npm run test",
     "db:manifest": "npx tsx scripts/generate-db-manifest.ts",
-    "db:install-optional": "npx tsx src/index.ts install"
+    "db:install-optional": "npx tsx src/index.ts install",
+    "index-mappings": "npx tsx scripts/index-mappings.ts",
+    "index-mappings:force": "npx tsx scripts/index-mappings.ts --force",
+    "mappings:manifest": "npx tsx scripts/generate-mappings-manifest.ts",
+    "mappings:analyze": "npx tsx scripts/analyze-mappings.ts",
+    "index-mod-examples": "npx tsx scripts/index-mod-examples.ts",
+    "mod-examples:manifest": "npx tsx scripts/generate-mod-examples-manifest.ts"
   },
   "keywords": [
     "minecraft",
@@ -73,10 +79,12 @@
     "@types/better-sqlite3": "^7.6.12",
     "@types/jquery": "^3.5.33",
     "@types/node": "^22.10.1",
+    "@types/adm-zip": "^0.5.6",
     "@typescript-eslint/eslint-plugin": "^8.15.0",
     "@typescript-eslint/parser": "^8.15.0",
     "@vitest/coverage-v8": "^4.0.15",
     "@vitest/ui": "^4.0.15",
+    "adm-zip": "^0.5.16",
     "conventional-changelog-conventionalcommits": "^9.1.0",
     "eslint": "^9.15.0",
     "eslint-config-prettier": "^9.1.0",

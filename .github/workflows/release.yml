@@ -67,6 +67,20 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Index and prepare mappings
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          echo "📋 Indexing Parchment mappings..."
+          npm run index-mappings:force
+
+          echo "📋 Generating mappings manifest..."
+          npm run mappings:manifest -- --bump patch --changelog "Release $RELEASE_TAG"
+
+          # Log the new mappings version
+          MAPPINGS_VERSION=$(node -p "require('./data/parchment-mappings-manifest.json').version")
+          echo "Generated Mappings Manifest Version: $MAPPINGS_VERSION"
+
       - name: Prepare database release artifacts
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
@@ -82,8 +96,15 @@ jobs:
           echo "Generated DB Manifest Version: $DB_VERSION"
 
           mkdir -p release-artifacts
+
+          # Documentation database artifacts
           cp data/mcmodding-docs.db release-artifacts/
           cp data/db-manifest.json release-artifacts/db-manifest.json
+
+          # Parchment mappings artifacts
+          cp data/parchment-mappings.db release-artifacts/
+          cp data/parchment-mappings-manifest.json release-artifacts/parchment-mappings-manifest.json
+
           echo "📦 Release artifacts:"
           ls -lh release-artifacts/
 
@@ -94,6 +115,8 @@ jobs:
           files: |
             release-artifacts/mcmodding-docs.db
             release-artifacts/db-manifest.json
+            release-artifacts/parchment-mappings.db
+            release-artifacts/parchment-mappings-manifest.json
           append_body: true
           body: |
 
@@ -105,8 +128,10 @@ jobs:
             |------|-------------|
             | `mcmodding-docs.db` | Complete documentation index with semantic embeddings |
             | `db-manifest.json` | Version manifest with SHA256 hash verification |
+            | `parchment-mappings.db` | Parchment mappings database for Minecraft class/method names |
+            | `parchment-mappings-manifest.json` | Mappings version manifest with SHA256 hash verification |
 
-            **Auto-Update:** The MCP will automatically detect and download this version on next startup.
+            **Auto-Update:** The MCP will automatically detect and download these databases on next startup.
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -115,18 +140,25 @@ jobs:
       - name: Log release summary
         run: |
           VERSION=$(node -p "require('./package.json').version")
+          DB_VERSION=$(node -p "require('./data/db-manifest.json').version")
+          MAPPINGS_VERSION=$(node -p "require('./data/parchment-mappings-manifest.json').version")
           echo "## 🎉 Release Published Successfully!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Version | \`v$VERSION\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Package Version | \`v$VERSION\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Database Version | \`v$DB_VERSION\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mappings Version | \`v$MAPPINGS_VERSION\` |" >> $GITHUB_STEP_SUMMARY
           echo "| npm | ✅ Published |" >> $GITHUB_STEP_SUMMARY
           echo "| GitHub Release | ✅ Created |" >> $GITHUB_STEP_SUMMARY
           echo "| Database | ✅ Uploaded |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mappings | ✅ Uploaded |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "- \`mcmodding-docs.db\` - Documentation index" >> $GITHUB_STEP_SUMMARY
-          echo "- \`db-manifest.json\` - Version manifest" >> $GITHUB_STEP_SUMMARY
+          echo "- \`db-manifest.json\` - Documentation version manifest" >> $GITHUB_STEP_SUMMARY
+          echo "- \`parchment-mappings.db\` - Parchment mappings database" >> $GITHUB_STEP_SUMMARY
+          echo "- \`parchment-mappings-manifest.json\` - Mappings version manifest" >> $GITHUB_STEP_SUMMARY
 
   # Sync prod back to dev after release
   sync-to-dev:
@@ -168,6 +200,8 @@ jobs:
             - Updated `.release-please-manifest.json`
             - Updated `data/mcmodding-docs.db` (via Git LFS)
             - Updated `data/db-manifest.json`
+            - Updated `data/parchment-mappings.db` (via Git LFS)
+            - Updated `data/parchment-mappings-manifest.json`
 
             **Auto-merge recommended** to keep branches in sync.
           branch: sync/prod-to-dev

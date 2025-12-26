@@ -141,19 +141,19 @@ export class DbVersioning {
     try {
       const local = this.getLocalManifest();
       if (!local) {
-        console.info('[DbVersioning] No local manifest found, update available');
+        console.error('[DbVersioning] No local manifest found, update available');
         return true;
       }
 
       const remote = await this.getRemoteManifest();
       if (!remote) {
-        console.info('[DbVersioning] Could not fetch remote manifest');
+        console.error('[DbVersioning] Could not fetch remote manifest');
         return false;
       }
 
       const comparison = this.compareVersions(local.version, remote.version);
       if (comparison < 0) {
-        console.info(`[DbVersioning] Update available: ${local.version} -> ${remote.version}`);
+        console.error(`[DbVersioning] Update available: ${local.version} -> ${remote.version}`);
         return true;
       }
 
@@ -169,7 +169,7 @@ export class DbVersioning {
    */
   async downloadDatabase(manifest: DbVersionManifest): Promise<boolean> {
     try {
-      console.info(`[DbVersioning] Downloading database version ${manifest.version}...`);
+      console.error(`[DbVersioning] Downloading database version ${manifest.version}...`);
 
       const response = await fetch(manifest.downloadUrl);
       if (!response.ok) {
@@ -181,7 +181,7 @@ export class DbVersioning {
       if (fs.existsSync(this.dbPath)) {
         const backupPath = `${this.dbPath}.backup`;
         fs.copyFileSync(this.dbPath, backupPath);
-        console.info(`[DbVersioning] Created backup at ${backupPath}`);
+        console.error(`[DbVersioning] Created backup at ${backupPath}`);
       }
 
       // Write downloaded file
@@ -201,7 +201,7 @@ export class DbVersioning {
 
       // Replace database
       fs.renameSync(tempPath, this.dbPath);
-      console.info(`[DbVersioning] Successfully updated database to version ${manifest.version}`);
+      console.error(`[DbVersioning] Successfully updated database to version ${manifest.version}`);
 
       return true;
     } catch (error) {
@@ -219,7 +219,7 @@ export class DbVersioning {
         fs.mkdirSync(this.dataDir, { recursive: true });
       }
       fs.writeFileSync(this.localManifestPath, JSON.stringify(manifest, null, 2));
-      console.info(`[DbVersioning] Saved manifest version ${manifest.version}`);
+      console.error(`[DbVersioning] Saved manifest version ${manifest.version}`);
     } catch (error) {
       console.error('[DbVersioning] Error saving manifest:', error);
     }
@@ -274,13 +274,13 @@ export class DbVersioning {
     try {
       const hasUpdate = await this.isUpdateAvailable();
       if (!hasUpdate) {
-        console.info('[DbVersioning] Database is up to date');
+        console.error('[DbVersioning] Database is up to date');
         return false;
       }
 
       const remote = await this.getRemoteManifest();
       if (!remote) {
-        console.info('[DbVersioning] Could not fetch remote manifest for update');
+        console.error('[DbVersioning] Could not fetch remote manifest for update');
         return false;
       }
 

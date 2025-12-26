@@ -14,7 +14,7 @@ jobs:
   update-docs:
     name: Update Documentation Index
     runs-on: ubuntu-latest
-    timeout-minutes: 120 # Increased timeout for full re-index
+    timeout-minutes: 180 # Increased timeout for full re-index including mappings
 
     steps:
       - name: Checkout code
@@ -48,6 +48,10 @@ jobs:
           echo "Latest release tag: $LATEST_TAG"
           echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
 
+      # ═══════════════════════════════════════════════════════════════════════════
+      # DOCUMENTATION DATABASE
+      # ═══════════════════════════════════════════════════════════════════════════
+
       - name: Re-index Documentation (Full Rebuild)
         run: |
           # Remove existing database to ensure a fresh index
@@ -59,38 +63,73 @@ jobs:
           # Allow longer timeout and more memory for embedding generation
           NODE_OPTIONS: --max-old-space-size=8192
 
-      - name: Generate New Database Manifest
+      - name: Generate Documentation Database Manifest
         run: |
           # Generate manifest with a patch bump
           npm run db:manifest -- --bump patch --changelog "Weekly update for $LATEST_TAG" --release-tag "$LATEST_TAG"
         env:
           LATEST_TAG: ${{ steps.get_release.outputs.tag }}
 
+      # ═══════════════════════════════════════════════════════════════════════════
+      # PARCHMENT MAPPINGS DATABASE
+      # ═══════════════════════════════════════════════════════════════════════════
+
+      - name: Re-index Parchment Mappings (Full Rebuild)
+        run: |
+          # Remove existing database to ensure a fresh index
+          rm -f data/parchment-mappings.db
+
+          # Run full mappings index with force flag
+          npm run index-mappings:force
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+
+      - name: Generate Mappings Database Manifest
+        run: |
+          # Generate mappings manifest with a patch bump
+          npm run mappings:manifest -- --bump patch --changelog "Weekly mappings update for $LATEST_TAG"
+        env:
+          LATEST_TAG: ${{ steps.get_release.outputs.tag }}
+
+      # ═══════════════════════════════════════════════════════════════════════════
+      # UPLOAD AND COMMIT
+      # ═══════════════════════════════════════════════════════════════════════════
+
       - name: Update Release Assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.get_release.outputs.tag }}
         run: |
-          echo "Uploading new database assets to release $TAG..."
+          echo "Uploading database assets to release $TAG..."
+          # Upload documentation database
           gh release upload "$TAG" data/mcmodding-docs.db data/db-manifest.json --clobber
+          # Upload mappings database
+          gh release upload "$TAG" data/parchment-mappings.db data/parchment-mappings-manifest.json --clobber
 
       - name: Commit and Push to Dev
         run: |
           git add data/mcmodding-docs.db data/db-manifest.json
+          git add data/parchment-mappings.db data/parchment-mappings-manifest.json
 
           # Check if there are changes to commit
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Weekly documentation update [skip ci]" --no-verify
+            git commit -m "Weekly documentation and mappings update [skip ci]" --no-verify
             git push origin dev
           fi
 
       - name: Log summary
         if: always()
         run: |
-          echo "## Documentation Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Weekly Update Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Documentation Database" >> $GITHUB_STEP_SUMMARY
           echo "✅ Full re-index completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Parchment Mappings Database" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Full mappings re-index completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Release" >> $GITHUB_STEP_SUMMARY
           echo "✅ Database assets updated in release ${{ steps.get_release.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
           echo "✅ Changes committed to dev branch" >> $GITHUB_STEP_SUMMARY

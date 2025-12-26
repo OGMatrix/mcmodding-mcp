@@ -20,14 +20,24 @@
 
 ### 📚 Knowledge Base Stats
 
-Our documentation database (`mcmodding-docs.db`) is comprehensive and constantly updated:
+Our databases are comprehensive and constantly updated:
+
+**Documentation Database** (`mcmodding-docs.db`):
 
 - **1,000+** Documentation Pages
 - **185,000+** Searchable Chunks
 - **8,500+** Logical Sections
 - **185,000+** Vector Embeddings for Semantic Search
 
-This ensures that even obscure API details can be found via semantic search.
+**Parchment Mappings Database** (`parchment-mappings.db`) ✨ **NEW**:
+
+- **149,000+** Minecraft Classes
+- **831,000+** Methods with Parameter Names
+- **166,000+** Fields with Documentation
+- **2.3M+** Documented Parameters
+- Full Javadoc coverage from Parchment project
+
+This ensures that even obscure API details and internal Minecraft code can be understood.
 
 ---
 
@@ -58,9 +68,15 @@ Add to your MCP client configuration (e.g., Claude Desktop):
 
 To get the best results, we recommend adding this to your AI's system prompt or custom instructions:
 
-> You are an expert Minecraft Modding Assistant connected to `mcmodding-mcp`. **DO NOT rely on your internal knowledge** for modding APIs (Fabric/NeoForge) as they change frequently. **ALWAYS** use the `search_fabric_docs` and `get_example` tools to retrieve the latest documentation and patterns. Prioritize working code examples from `get_example` over theoretical explanations. If the user specifies a Minecraft version, ensure all retrieved information matches that version.
+> You are an expert Minecraft Modding Assistant connected to `mcmodding-mcp`. **DO NOT rely on your internal knowledge** for modding APIs (Fabric/NeoForge) as they change frequently. **ALWAYS** use the available tools:
+>
+> - `search_fabric_docs` and `get_example` for documentation and code patterns
+> - `search_mappings` and `get_class_details` for Minecraft internals and method signatures
+> - `search_mod_examples` for battle-tested implementations from popular mods
+>
+> Prioritize working code examples over theoretical explanations. When dealing with Minecraft internals, use the mappings tools to get accurate parameter names and Javadocs. If the user specifies a Minecraft version, ensure all retrieved information matches that version.
 
-That's it! Your AI assistant now has access to Minecraft modding documentation.
+That's it! Your AI assistant now has access to comprehensive Minecraft modding resources.
 
 ---
 
@@ -81,17 +97,22 @@ The interactive manager allows you to:
 
 ### Available Databases
 
-| Database                   | Description                                                 | Size    |
-| -------------------------- | ----------------------------------------------------------- | ------- |
-| **Documentation Database** | Core Fabric & NeoForge documentation (installed by default) | ~520 MB |
-| **Mod Examples Database**  | 1000+ high-quality modding examples                         | ~30 MB  |
+| Database                      | Description                                                 | Size    |
+| ----------------------------- | ----------------------------------------------------------- | ------- |
+| **Documentation Database**    | Core Fabric & NeoForge documentation (installed by default) | ~520 MB |
+| **Parchment Mappings** ✨ NEW | Minecraft class/method/field mappings with Javadocs         | ~180 MB |
+| **Mod Examples Database**     | 1000+ high-quality modding examples                         | ~30 MB  |
 
 The manager shows version information and highlights available updates:
 
 ```
 ◉ 📚 Documentation Database [core]
-     ✔ Installed: v0.2.1 → ↻ Update: v0.2.2 [52.3 MB]
+     ✔ Installed: v0.2.1 → ↻ Update: v0.2.2 [520.3 MB]
      Core Fabric & NeoForge documentation - installed by default
+
+○ 🗺️ Parchment Mappings Database ✨ NEW
+     ⚠ Not installed → Available: v0.1.0 [178.5 MB]
+     Minecraft class/method/field names with parameter names and Javadocs
 
 ○ 🧩 Mod Examples Database
      ⚠ Not installed → Available: v0.1.0 [28.1 MB]
@@ -102,9 +123,11 @@ The manager shows version information and highlights available updates:
 
 ## Available Tools
 
-The MCP server provides four powerful tools:
+The MCP server provides powerful tools across three categories:
 
-### `search_fabric_docs`
+### 📖 Documentation Tools
+
+#### `search_fabric_docs`
 
 Search documentation with smart filtering.
 
@@ -114,11 +137,11 @@ Search documentation with smart filtering.
   query: "how to register custom items",
   category: "items",           // Optional filter
   loader: "fabric",            // fabric | neoforge
-  minecraft_version: "1.21.4"  // Optional version filter
+  minecraft_version: "1.21.10"  // Optional version filter
 }
 ```
 
-### `get_example`
+#### `get_example`
 
 Get working code examples for any topic.
 
@@ -131,7 +154,7 @@ Get working code examples for any topic.
 }
 ```
 
-### `explain_fabric_concept`
+#### `explain_fabric_concept`
 
 Get detailed explanations of modding concepts with related resources.
 
@@ -142,7 +165,7 @@ Get detailed explanations of modding concepts with related resources.
 }
 ```
 
-### `get_minecraft_version`
+#### `get_minecraft_version`
 
 Get current Minecraft version information.
 
@@ -157,6 +180,113 @@ Get current Minecraft version information.
   type: 'all';
 }
 ```
+
+---
+
+### 🗺️ Parchment Mappings Tools ✨ NEW
+
+_Requires Parchment Mappings database - install via `npx mcmodding-mcp manage`_
+
+#### `search_mappings`
+
+Search Minecraft class, method, and field mappings with parameter names and Javadocs.
+
+```typescript
+// Example: Find block-related classes and methods
+{
+  query: "BlockEntity",
+  type: "class",              // class | method | field | all
+  minecraft_version: "1.21.10",
+  include_javadoc: true
+}
+```
+
+#### `get_class_details`
+
+Get comprehensive information about a Minecraft class including all methods and fields.
+
+```typescript
+// Example: Explore the Block class
+{
+  class_name: "net.minecraft.world.level.block.Block",
+  include_methods: true,
+  include_fields: true
+}
+```
+
+#### `lookup_obfuscated`
+
+Look up deobfuscated names from obfuscated identifiers (useful for crash logs).
+
+```typescript
+// Example: Decode an obfuscated method name
+{
+  obfuscated_name: 'm_46859_';
+}
+```
+
+#### `get_method_signature`
+
+Get the full signature of a method including all parameter names and types.
+
+```typescript
+// Example: Get method details
+{
+  class_name: "Block",
+  method_name: "onPlace"
+}
+```
+
+#### `browse_package`
+
+Discover classes in a Minecraft package.
+
+```typescript
+// Example: Browse block package
+{
+  package_name: 'net.minecraft.world.level.block';
+}
+```
+
+---
+
+### 🧩 Mod Examples Tools
+
+_Requires Mod Examples database - install via `npx mcmodding-mcp manage`_
+
+#### `search_mod_examples`
+
+Search battle-tested code from popular mods like Create, Botania, and Applied Energistics 2.
+
+```typescript
+// Example: Find block entity implementations
+{
+  query: "block entity tick",
+  mod: "Create",              // Optional: filter by mod
+  category: "tile-entities",
+  complexity: "intermediate"
+}
+```
+
+#### `get_mod_example`
+
+Get detailed information about a specific example with full code and explanations.
+
+```typescript
+// Example: Get full details for an example
+{
+  id: 42,
+  include_related: true
+}
+```
+
+#### `list_canonical_mods`
+
+Discover all indexed mods and their available examples.
+
+#### `list_mod_categories`
+
+Browse available example categories (blocks, entities, rendering, etc.).
 
 ---
 
@@ -339,6 +469,32 @@ DB_PATH=/path/to/my/database.db mcmodding-mcp
 
 ---
 
+## 💡 Share Your Ideas!
+
+We're actively developing mcmodding-mcp and want to hear from you!
+
+### Have an Idea?
+
+- **Feature requests** - What tools would make your modding easier?
+- **New documentation sources** - Know a great modding resource we should index?
+- **Workflow improvements** - How could the tools work better for your use case?
+
+👉 [Open a Feature Request](https://github.com/OGMatrix/mcmodding-mcp/issues/new?template=feature_request.md)
+
+### Found a Bug?
+
+- Incorrect search results?
+- Missing or outdated documentation?
+- Tool not working as expected?
+
+👉 [Report a Bug](https://github.com/OGMatrix/mcmodding-mcp/issues/new?template=bug_report.md)
+
+### Share Your Experience
+
+Using mcmodding-mcp for a cool project? We'd love to hear about it! Share your story in [Discussions](https://github.com/OGMatrix/mcmodding-mcp/discussions).
+
+---
+
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
@@ -366,6 +522,8 @@ See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes and releases.
 
 - [Fabric Documentation](https://docs.fabricmc.net/) - Official Fabric documentation
 - [Fabric Wiki](https://wiki.fabricmc.net/) - Community wiki
+- [NeoForge Documentation](https://docs.neoforged.net/) - Official NeoForge documentation
+- [ParchmentMC](https://parchmentmc.org/) - Parameter names and Javadoc mappings
 - [Model Context Protocol](https://modelcontextprotocol.io/) - MCP specification
 - [Transformers.js](https://huggingface.co/docs/transformers.js) - Local ML embeddings
 - [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) - Fast SQLite bindings

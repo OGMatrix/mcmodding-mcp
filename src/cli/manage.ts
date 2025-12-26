@@ -79,6 +79,15 @@ const AVAILABLE_DBS: OptionalDb[] = [
     tagPrefix: 'examples-v',
     icon: '🧩',
   },
+  {
+    id: 'parchment-mappings',
+    name: 'Parchment Mappings Database',
+    fileName: 'parchment-mappings.db',
+    manifestName: 'parchment-mappings-manifest.json',
+    description: 'Minecraft class/method/field mappings with parameter names & Javadocs',
+    tagPrefix: 'mappings-v',
+    icon: '🗺️',
+  },
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
