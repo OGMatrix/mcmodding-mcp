@@ -1,3 +1,27 @@
+## [0.4.0](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.3.1...v0.4.0) (2025-12-26)
+
+### Features
+
+* add Parchment mappings service and tools ([c1927c2](https://github.com/OGMatrix/mcmodding-mcp/commit/c1927c2b83543e7756f6540fe17581ce8da4aeb6))
+* **ci:** add mappings indexing and manifest generation to release workflow ([e2fba4a](https://github.com/OGMatrix/mcmodding-mcp/commit/e2fba4ac5bd53403d700a65d413fd1834c8f1f75))
+* integrate Parchment mappings into MCP server ([6452693](https://github.com/OGMatrix/mcmodding-mcp/commit/645269362f8fed43c21d39574a46b01ef647802a))
+
+### Bug Fixes
+
+* use stderr for DbVersioning log messages ([678d1c3](https://github.com/OGMatrix/mcmodding-mcp/commit/678d1c35e22c76ad0d659d2f599dad43db271edb))
+
+### Documentation
+
+* update README with Parchment mappings and community engagement ([3f545b5](https://github.com/OGMatrix/mcmodding-mcp/commit/3f545b5cab1a2723cc475632f84155aedb79fca2))
+
+### Tests
+
+* add comprehensive unit tests for MappingsService ([12a0ca6](https://github.com/OGMatrix/mcmodding-mcp/commit/12a0ca6187d77f1079b93b7a7d65854691644b8b))
+
+### CI/CD
+
+* add Parchment mappings to weekly update workflow ([7d0a59c](https://github.com/OGMatrix/mcmodding-mcp/commit/7d0a59ce3a4217135c15f42fa062d4dc85ebea23))
+
 ## [0.3.1](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.3.0...v0.3.1) (2025-12-23)
 
 ### Bug Fixes
