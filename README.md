@@ -479,7 +479,7 @@ We're actively developing mcmodding-mcp and want to hear from you!
 - **New documentation sources** - Know a great modding resource we should index?
 - **Workflow improvements** - How could the tools work better for your use case?
 
-👉 [Open a Feature Request](https://github.com/OGMatrix/mcmodding-mcp/issues/new?template=feature_request.md)
+👉 [Open a Feature Request](https://github.com/OGMatrix/mcmodding-mcp/issues/new?template=feature_request.yml)
 
 ### Found a Bug?
 
@@ -487,7 +487,7 @@ We're actively developing mcmodding-mcp and want to hear from you!
 - Missing or outdated documentation?
 - Tool not working as expected?
 
-👉 [Report a Bug](https://github.com/OGMatrix/mcmodding-mcp/issues/new?template=bug_report.md)
+👉 [Report a Bug](https://github.com/OGMatrix/mcmodding-mcp/issues/new?template=bug_report.yml)
 
 ### Share Your Experience
 
