@@ -76,7 +76,7 @@ const AVAILABLE_DBS: OptionalDb[] = [
     fileName: 'mod-examples.db',
     manifestName: 'mod-examples-manifest.json',
     description: '1000+ high-quality modding examples for Fabric & NeoForge',
-    tagPrefix: 'examples-v',
+    tagPrefix: 'v',
     icon: '🧩',
   },
   {
@@ -85,7 +85,7 @@ const AVAILABLE_DBS: OptionalDb[] = [
     fileName: 'parchment-mappings.db',
     manifestName: 'parchment-mappings-manifest.json',
     description: 'Minecraft class/method/field mappings with parameter names & Javadocs',
-    tagPrefix: 'mappings-v',
+    tagPrefix: 'v',
     icon: '🗺️',
   },
 ];

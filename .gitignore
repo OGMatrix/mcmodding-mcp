@@ -155,3 +155,4 @@ data/*.db.backup
 # These require local LM Studio setup and are for maintainers only
 scripts/index-mod-examples.ts
 # scripts/generate-mod-examples-manifest.ts
+data
