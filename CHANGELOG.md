@@ -1,3 +1,10 @@
+## [0.4.1](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.4.0...v0.4.1) (2026-01-01)
+
+### Bug Fixes
+
+* use unified tag prefix for all databases ([2d3c648](https://github.com/OGMatrix/mcmodding-mcp/commit/2d3c648e7400b63c99b13461a4c9a9ff3764f02c))
+* use unified tag prefix for database manager and enhance README ([69f7937](https://github.com/OGMatrix/mcmodding-mcp/commit/69f793771cc2eec4735b345c89c48faf270c0f76)), closes [#14](https://github.com/OGMatrix/mcmodding-mcp/issues/14)
+
 ## [0.4.0](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.3.1...v0.4.0) (2025-12-26)
 
 ### Features
