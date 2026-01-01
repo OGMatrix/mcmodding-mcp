@@ -1,43 +1,69 @@
-# mcmodding-mcp
+<div align="center">
 
-[![npm version](https://img.shields.io/npm/v/mcmodding-mcp.svg)](https://www.npmjs.com/package/mcmodding-mcp)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/OGMatrix/mcmodding-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/OGMatrix/mcmodding-mcp/actions/workflows/ci.yml)
+<img src="docs/logo.png" alt="MCModding-MCP Logo" width="180" />
 
-> MCP server providing AI assistants with comprehensive, up-to-date Minecraft modding documentation for Fabric and NeoForge.
+# MCModding-MCP
 
-## What is this?
+### 🤖 AI-Powered Minecraft Modding Documentation Server
 
-**mcmodding-mcp** is a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that gives AI assistants like Claude direct access to Minecraft modding documentation. Instead of relying on potentially outdated training data, your AI assistant can search real documentation, find code examples, and explain concepts accurately.
+_Give your AI assistant real-time access to Fabric & NeoForge documentation_
 
-### Key Benefits
+<br />
 
-- **Always Current** - Documentation is indexed weekly from official sources
-- **Accurate Answers** - AI responses backed by real documentation, not hallucinations
-- **Code Examples** - Searchable code blocks with proper context
-- **Semantic Search** - Understands what you mean, not just keywords
-- **Zero Config** - Works immediately after installation
+[![npm version](https://img.shields.io/npm/v/mcmodding-mcp?style=for-the-badge&logo=npm&logoColor=white&color=CB3837)](https://www.npmjs.com/package/mcmodding-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/mcmodding-mcp?style=for-the-badge&logo=npm&logoColor=white&color=blue)](https://www.npmjs.com/package/mcmodding-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](https://opensource.org/licenses/MIT)
+[![CI](https://img.shields.io/github/actions/workflow/status/OGMatrix/mcmodding-mcp/ci.yml?style=for-the-badge&logo=github&label=CI)](https://github.com/OGMatrix/mcmodding-mcp/actions/workflows/ci.yml)
 
-### 📚 Knowledge Base Stats
+<br />
 
-Our databases are comprehensive and constantly updated:
+[![GitHub stars](https://img.shields.io/github/stars/OGMatrix/mcmodding-mcp?style=flat-square&logo=github&label=Stars)](https://github.com/OGMatrix/mcmodding-mcp/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/OGMatrix/mcmodding-mcp?style=flat-square&logo=github&label=Issues)](https://github.com/OGMatrix/mcmodding-mcp/issues)
+[![GitHub last commit](https://img.shields.io/github/last-commit/OGMatrix/mcmodding-mcp?style=flat-square&logo=github&label=Last%20Commit)](https://github.com/OGMatrix/mcmodding-mcp/commits)
+[![Node.js](https://img.shields.io/badge/Node.js-≥20.0.0-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
 
-**Documentation Database** (`mcmodding-docs.db`):
+<br />
 
-- **1,000+** Documentation Pages
-- **185,000+** Searchable Chunks
-- **8,500+** Logical Sections
-- **185,000+** Vector Embeddings for Semantic Search
+[📖 Documentation](#available-tools) • [🚀 Quick Start](#quick-start) • [💡 Features](#features) • [🤝 Contributing](#contributing)
 
-**Parchment Mappings Database** (`parchment-mappings.db`) ✨ **NEW**:
+---
 
-- **149,000+** Minecraft Classes
-- **831,000+** Methods with Parameter Names
-- **166,000+** Fields with Documentation
-- **2.3M+** Documented Parameters
-- Full Javadoc coverage from Parchment project
+</div>
 
-This ensures that even obscure API details and internal Minecraft code can be understood.
+## ✨ What is this?
+
+**MCModding-MCP** is a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that supercharges AI assistants like Claude with **real, up-to-date** Minecraft modding knowledge. No more hallucinations or outdated API references!
+
+<table>
+<tr>
+<td width="50%">
+
+### 🎯 Key Benefits
+
+| Feature                 | Description                            |
+| ----------------------- | -------------------------------------- |
+| 📅 **Always Current**   | Weekly-indexed from official sources   |
+| ✅ **Accurate Answers** | Real documentation, not hallucinations |
+| 💻 **Code Examples**    | Searchable code blocks with context    |
+| 🧠 **Semantic Search**  | Understands meaning, not just keywords |
+| ⚡ **Zero Config**      | Works immediately after installation   |
+
+</td>
+<td width="50%">
+
+### 📊 Live Statistics
+
+| Database          | Content                       |
+| ----------------- | ----------------------------- |
+| 📚 **Docs**       | 1,000+ pages, 185K+ chunks    |
+| 🗺️ **Mappings**   | 831K+ methods, 166K+ fields   |
+| 🧩 **Examples**   | 1,000+ battle-tested patterns |
+| 🔍 **Embeddings** | 185K+ semantic vectors        |
+| 📖 **Javadocs**   | 2.3M+ documented parameters   |
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -479,7 +505,7 @@ We're actively developing mcmodding-mcp and want to hear from you!
 - **New documentation sources** - Know a great modding resource we should index?
 - **Workflow improvements** - How could the tools work better for your use case?
 
-👉 [Open a Feature Request](https://github.com/OGMatrix/mcmodding-mcp/issues/new?template=feature_request.md)
+👉 [Open a Feature Request](https://github.com/OGMatrix/mcmodding-mcp/issues/new?template=feature_request.yml)
 
 ### Found a Bug?
 
@@ -487,7 +513,7 @@ We're actively developing mcmodding-mcp and want to hear from you!
 - Missing or outdated documentation?
 - Tool not working as expected?
 
-👉 [Report a Bug](https://github.com/OGMatrix/mcmodding-mcp/issues/new?template=bug_report.md)
+👉 [Report a Bug](https://github.com/OGMatrix/mcmodding-mcp/issues/new?template=bug_report.yml)
 
 ### Share Your Experience
 
@@ -530,6 +556,22 @@ See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes and releases.
 
 ---
 
-<p align="center">
-  <strong>Built with care for the Minecraft modding community</strong>
-</p>
+<div align="center">
+
+<br />
+
+**🎮 Built with ❤️ for the Minecraft modding community**
+
+<br />
+
+[![Made with TypeScript](https://img.shields.io/badge/Made%20with-TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Powered by SQLite](https://img.shields.io/badge/Powered%20by-SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Uses MCP](https://img.shields.io/badge/Uses-Model%20Context%20Protocol-8B5CF6?style=for-the-badge)](https://modelcontextprotocol.io/)
+
+<br />
+
+If you find this project useful, please consider giving it a ⭐!
+
+[⬆️ Back to Top](#mcmodding-mcp)
+
+</div>
