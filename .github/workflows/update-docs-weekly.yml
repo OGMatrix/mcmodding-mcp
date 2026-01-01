@@ -106,19 +106,6 @@ jobs:
           # Upload mappings database
           gh release upload "$TAG" data/parchment-mappings.db data/parchment-mappings-manifest.json --clobber
 
-      - name: Commit and Push to Dev
-        run: |
-          git add data/mcmodding-docs.db data/db-manifest.json
-          git add data/parchment-mappings.db data/parchment-mappings-manifest.json
-
-          # Check if there are changes to commit
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "Weekly documentation and mappings update [skip ci]" --no-verify
-            git push origin dev
-          fi
-
       - name: Log summary
         if: always()
         run: |
