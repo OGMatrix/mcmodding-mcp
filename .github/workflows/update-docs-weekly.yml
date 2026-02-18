@@ -23,11 +23,14 @@ jobs:
           ref: dev # Checkout dev branch to commit changes later
           fetch-depth: 0
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Configure Git
         run: |
@@ -35,7 +38,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -58,7 +61,7 @@ jobs:
           rm -f data/mcmodding-docs.db
 
           # Run full index (no incremental flag)
-          npm run index-docs -- --sitemap --embeddings
+          pnpm run index-docs -- --sitemap --embeddings
         env:
           # Allow longer timeout and more memory for embedding generation
           NODE_OPTIONS: --max-old-space-size=8192
@@ -66,7 +69,7 @@ jobs:
       - name: Generate Documentation Database Manifest
         run: |
           # Generate manifest with a patch bump
-          npm run db:manifest -- --bump patch --changelog "Weekly update for $LATEST_TAG" --release-tag "$LATEST_TAG"
+          pnpm run db:manifest -- --bump patch --changelog "Weekly update for $LATEST_TAG" --release-tag "$LATEST_TAG"
         env:
           LATEST_TAG: ${{ steps.get_release.outputs.tag }}
 
@@ -80,14 +83,14 @@ jobs:
           rm -f data/parchment-mappings.db
 
           # Run full mappings index with force flag
-          npm run index-mappings:force
+          pnpm run index-mappings:force
         env:
           NODE_OPTIONS: --max-old-space-size=8192
 
       - name: Generate Mappings Database Manifest
         run: |
           # Generate mappings manifest with a patch bump
-          npm run mappings:manifest -- --bump patch --changelog "Weekly mappings update for $LATEST_TAG"
+          pnpm run mappings:manifest -- --bump patch --changelog "Weekly mappings update for $LATEST_TAG"
         env:
           LATEST_TAG: ${{ steps.get_release.outputs.tag }}
 
