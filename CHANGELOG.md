@@ -1,3 +1,12 @@
+## [0.4.2](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.4.1...v0.4.2) (2026-02-18)
+
+### Bug Fixes
+
+* allow native module build scripts in pnpm (sharp, better-sqlite3, etc.) ([4c0c03f](https://github.com/OGMatrix/mcmodding-mcp/commit/4c0c03f55ea7864e5bc43920a861b22eed802ee9))
+* changed to cwd-relative storage ([#16](https://github.com/OGMatrix/mcmodding-mcp/issues/16)) ([3d59852](https://github.com/OGMatrix/mcmodding-mcp/commit/3d59852a33fd4daf9f0bb416852c3736e061ee02))
+* migrate CI workflows from npm to pnpm and remove stale package-lock.json ([3f033e3](https://github.com/OGMatrix/mcmodding-mcp/commit/3f033e3857d8ad733affe861002bf32b84b10eb9))
+* synced package and package-lock (updated workflows) ([a88fade](https://github.com/OGMatrix/mcmodding-mcp/commit/a88fade801172eb1f3ec109819a0855b5c14aa18))
+
 ## [0.4.1](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.4.0...v0.4.1) (2026-01-01)
 
 ### Bug Fixes
