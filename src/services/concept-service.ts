@@ -7,7 +7,7 @@
 import { DocumentStore } from '../indexer/store.js';
 import { EmbeddingGenerator } from '../indexer/embeddings.js';
 import { tokenizeQuery } from './search-utils.js';
-import path from 'path';
+import { getDefaultDbPath } from '../data-dir.js';
 
 /**
  * Concept explanation result
@@ -151,8 +151,7 @@ export class ConceptService {
   private initialized = false;
 
   constructor(dbPath?: string) {
-    const finalPath =
-      dbPath || process.env.DB_PATH || path.join(process.cwd(), 'data', 'mcmodding-docs.db');
+    const finalPath = dbPath || process.env.DB_PATH || getDefaultDbPath('mcmodding-docs.db');
     console.error(`[ConceptService] Using database at: ${finalPath}`);
     this.store = new DocumentStore(finalPath);
   }

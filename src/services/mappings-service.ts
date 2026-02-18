@@ -11,7 +11,7 @@
 
 import Database from 'better-sqlite3';
 import * as fs from 'fs';
-import * as path from 'path';
+import { getDefaultDbPath } from '../data-dir.js';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SEARCH UTILITIES
@@ -510,7 +510,7 @@ export interface MappingsStats {
 
 export class MappingsService {
   private db: Database.Database;
-  private static dbPath = path.join(process.cwd(), 'data', 'parchment-mappings.db');
+  private static dbPath = getDefaultDbPath('parchment-mappings.db');
 
   constructor(dbPath?: string) {
     const finalPath = dbPath || MappingsService.dbPath;

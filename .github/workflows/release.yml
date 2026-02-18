@@ -33,12 +33,15 @@ jobs:
           fetch-depth: 0
           ref: prod
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Configure Git
         run: |
@@ -46,24 +49,21 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run validation
-        run: npm run validate
+        run: pnpm run validate
 
       - name: Build production with fresh docs
-        run: npm run build:prod
+        run: pnpm run build:prod
         env:
           NODE_OPTIONS: --max-old-space-size=6144
 
-      - name: Update npm
-        run: npm install -g npm@latest
-
       - name: Publish to npm
         if: ${{ github.event.inputs.skip_npm != 'true' }}
-        run: npm publish --provenance --access public --ignore-scripts
+        run: pnpm publish --provenance --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -72,10 +72,10 @@ jobs:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           echo "📋 Indexing Parchment mappings..."
-          npm run index-mappings:force
+          pnpm run index-mappings:force
 
           echo "📋 Generating mappings manifest..."
-          npm run mappings:manifest -- --bump patch --changelog "Release $RELEASE_TAG"
+          pnpm run mappings:manifest -- --bump patch --changelog "Release $RELEASE_TAG"
 
           # Log the new mappings version
           MAPPINGS_VERSION=$(node -p "require('./data/parchment-mappings-manifest.json').version")
@@ -89,7 +89,7 @@ jobs:
 
           # Regenerate manifest with a patch bump to ensure a new version is created
           # This makes the DB version independent of the package version
-          npm run db:manifest -- --bump patch --changelog "Release $RELEASE_TAG" --release-tag "$RELEASE_TAG"
+          pnpm run db:manifest -- --bump patch --changelog "Release $RELEASE_TAG" --release-tag "$RELEASE_TAG"
 
           # Log the new DB version
           DB_VERSION=$(node -p "require('./data/db-manifest.json').version")

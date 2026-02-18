@@ -4,10 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 import readline from 'readline';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { getDefaultDataDir } from '../data-dir.js';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CONFIGURATION
@@ -16,8 +13,8 @@ const __dirname = path.dirname(__filename);
 const CONFIG = {
   repoOwner: 'OGMatrix',
   repoName: 'mcmodding-mcp',
-  // Go up two levels from dist/cli/ or src/cli/ to get to root, then into data
-  dataDir: path.join(__dirname, '..', '..', 'data'),
+  // Use the shared platform-appropriate data directory
+  dataDir: getDefaultDataDir(),
   userAgent: 'mcmodding-mcp-installer',
 };
 

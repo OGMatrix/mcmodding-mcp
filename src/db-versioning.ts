@@ -6,6 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { getDefaultDbPath } from './data-dir.js';
 
 export interface DbVersionManifest {
   version: string;
@@ -24,7 +25,7 @@ export class DbVersioning {
   private remoteRepoUrl: string;
 
   constructor(dbPath?: string) {
-    this.dbPath = dbPath || path.join(process.cwd(), 'data', 'mcmodding-docs.db');
+    this.dbPath = dbPath || getDefaultDbPath('mcmodding-docs.db');
     this.dataDir = path.dirname(this.dbPath);
     this.localManifestPath = path.join(this.dataDir, 'db-manifest.json');
     // Extract owner/repo from process.env or use defaults
@@ -169,6 +170,11 @@ export class DbVersioning {
    */
   async downloadDatabase(manifest: DbVersionManifest): Promise<boolean> {
     try {
+      // Ensure data directory exists before downloading
+      if (!fs.existsSync(this.dataDir)) {
+        fs.mkdirSync(this.dataDir, { recursive: true });
+      }
+
       console.error(`[DbVersioning] Downloading database version ${manifest.version}...`);
 
       const response = await fetch(manifest.downloadUrl);
