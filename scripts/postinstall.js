@@ -11,10 +11,28 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import https from 'https';
-import { fileURLToPath } from 'url';
+import os from 'os';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// ═══════════════════════════════════════════════════════════════════════════════
+// SHARED DATA DIRECTORY (must match src/data-dir.ts logic exactly)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function getDefaultDataDir() {
+  if (process.env.MCMODDING_DATA_DIR) {
+    return process.env.MCMODDING_DATA_DIR;
+  }
+  const platform = process.platform;
+  if (platform === 'win32') {
+    const appData = process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming');
+    return path.join(appData, 'mcmodding-mcp');
+  }
+  if (platform === 'darwin') {
+    return path.join(os.homedir(), 'Library', 'Application Support', 'mcmodding-mcp');
+  }
+  // Linux / FreeBSD / others: XDG Base Directory Specification
+  const xdgDataHome = process.env.XDG_DATA_HOME || path.join(os.homedir(), '.local', 'share');
+  return path.join(xdgDataHome, 'mcmodding-mcp');
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CONFIGURATION
@@ -22,7 +40,7 @@ const __dirname = path.dirname(__filename);
 
 const CONFIG = {
   repoUrl: 'https://api.github.com/repos/OGMatrix/mcmodding-mcp/releases',
-  dataDir: path.join(__dirname, '..', 'data'),
+  dataDir: getDefaultDataDir(),
   dbFileName: 'mcmodding-docs.db',
   manifestFileName: 'db-manifest.json',
   userAgent: 'mcmodding-mcp-installer',
