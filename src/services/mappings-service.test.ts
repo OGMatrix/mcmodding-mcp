@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import * as fs from 'fs';
-import * as path from 'path';
+import { getDefaultDbPath } from '../data-dir.js';
 
 // ============================================================================
 // Search Algorithm Unit Tests (Pure Functions)
@@ -335,7 +335,7 @@ describe('Search Algorithm Functions', () => {
 // ============================================================================
 
 describe('MappingsService Integration', () => {
-  const TEST_DB_PATH = path.join(process.cwd(), 'data', 'parchment-mappings.db');
+  const TEST_DB_PATH = getDefaultDbPath('parchment-mappings.db');
   let hasDatabase = false;
 
   beforeAll(() => {
@@ -352,7 +352,7 @@ describe('MappingsService Integration', () => {
     });
   });
 
-  describe.runIf(fs.existsSync(path.join(process.cwd(), 'data', 'parchment-mappings.db')))(
+  describe.runIf(fs.existsSync(getDefaultDbPath('parchment-mappings.db')))(
     'MappingsService',
     () => {
       let MappingsService: typeof import('./mappings-service.js').MappingsService;
@@ -652,7 +652,7 @@ describe('Scoring Algorithm', () => {
   describe('score consistency', () => {
     it('exact match should always score 100', () => {
       // We test this through the service if available
-      const TEST_DB_PATH = path.join(process.cwd(), 'data', 'parchment-mappings.db');
+      const TEST_DB_PATH = getDefaultDbPath('parchment-mappings.db');
       if (!fs.existsSync(TEST_DB_PATH)) {
         console.log('Skipping scoring tests - no database');
         return;
@@ -698,7 +698,7 @@ describe('Scoring Algorithm', () => {
 // ============================================================================
 
 describe('Result Format', () => {
-  const TEST_DB_PATH = path.join(process.cwd(), 'data', 'parchment-mappings.db');
+  const TEST_DB_PATH = getDefaultDbPath('parchment-mappings.db');
 
   describe.runIf(fs.existsSync(TEST_DB_PATH))('MappingSearchResult structure', () => {
     let MappingsService: typeof import('./mappings-service.js').MappingsService;

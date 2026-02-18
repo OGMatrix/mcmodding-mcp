@@ -11,7 +11,7 @@ import {
   type TokenizedQuery,
   type ScoredResult,
 } from './search-utils.js';
-import path from 'path';
+import { getDefaultDbPath } from '../data-dir.js';
 
 export interface SearchResult {
   title: string;
@@ -115,8 +115,7 @@ export class SearchService {
   private embeddingGenerator: EmbeddingGenerator;
 
   constructor(dbPath?: string) {
-    const finalPath =
-      dbPath || process.env.DB_PATH || path.join(process.cwd(), 'data', 'mcmodding-docs.db');
+    const finalPath = dbPath || process.env.DB_PATH || getDefaultDbPath('mcmodding-docs.db');
     console.error(`[SearchService] Using database at: ${finalPath}`);
     this.store = new DocumentStore(finalPath);
     this.embeddingGenerator = new EmbeddingGenerator();

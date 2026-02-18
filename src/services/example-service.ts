@@ -12,7 +12,7 @@ import {
   type TokenizedQuery,
   type ScoredResult,
 } from './search-utils.js';
-import path from 'path';
+import { getDefaultDbPath } from '../data-dir.js';
 
 // Singleton instance for the embedding generator
 let embeddingGeneratorInstance: EmbeddingGenerator | null = null;
@@ -74,8 +74,7 @@ export class ExampleService {
   private store: DocumentStore;
 
   constructor(dbPath?: string) {
-    const finalPath =
-      dbPath || process.env.DB_PATH || path.join(process.cwd(), 'data', 'mcmodding-docs.db');
+    const finalPath = dbPath || process.env.DB_PATH || getDefaultDbPath('mcmodding-docs.db');
     console.error(`[ExampleService] Using database at: ${finalPath}`);
     this.store = new DocumentStore(finalPath);
   }
