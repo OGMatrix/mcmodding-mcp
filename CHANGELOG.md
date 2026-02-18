@@ -1,3 +1,9 @@
+## [0.4.3](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.4.2...v0.4.3) (2026-02-18)
+
+### Bug Fixes
+
+* use shared data dir in postinstall script to match runtime ([6f4c5e7](https://github.com/OGMatrix/mcmodding-mcp/commit/6f4c5e7d1d1de17ffeeb0edffb89dc3d935c45ab))
+
 ## [0.4.2](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.4.1...v0.4.2) (2026-02-18)
 
 ### Bug Fixes
