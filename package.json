@@ -119,5 +119,13 @@
   "bugs": {
     "url": "https://github.com/OGMatrix/mcmodding-mcp/issues"
   },
-  "homepage": "https://github.com/OGMatrix/mcmodding-mcp#readme"
+  "homepage": "https://github.com/OGMatrix/mcmodding-mcp#readme",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild",
+      "protobufjs",
+      "sharp"
+    ]
+  }
 }
