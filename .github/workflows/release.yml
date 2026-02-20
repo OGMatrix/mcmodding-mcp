@@ -63,9 +63,7 @@ jobs:
 
       - name: Publish to npm
         if: ${{ github.event.inputs.skip_npm != 'true' }}
-        # Uses Trusted Publishing via OIDC - no token needed
-        # Configure at: npmjs.com → Package Settings → Publishing access → Trusted publishers
-        run: pnpm publish --provenance --access public --no-git-checks
+        run: npm publish --provenance --access public --no-git-checks
 
       - name: Index and prepare mappings
         env:
