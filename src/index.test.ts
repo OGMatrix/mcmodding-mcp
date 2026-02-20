@@ -713,7 +713,7 @@ describe('Tool Response Format', () => {
 
       expect(result).toHaveProperty('content');
       expect(Array.isArray(result.content)).toBe(true);
-    });
+    }, 120000); // 2 minutes - embedding model init is slow in CI
 
     it('getMinecraftVersion should return valid CallToolResult', () => {
       const result = handleGetMinecraftVersion({});
