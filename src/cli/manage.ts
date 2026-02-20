@@ -701,43 +701,55 @@ async function getRemoteVersion(dbConfig: OptionalDb): Promise<RemoteInfo | null
       `https://api.github.com/repos/${CONFIG.repoOwner}/${CONFIG.repoName}/releases`
     )) as GitHubRelease[];
 
-    // Find the latest release matching the tag prefix
-    const release = releases.find((r) => r.tag_name.startsWith(dbConfig.tagPrefix));
-
-    if (!release) return null;
-
-    // Extract version from tag (e.g., examples-v0.1.0 -> 0.1.0)
-    let version = release.tag_name.replace(dbConfig.tagPrefix, '');
-
-    // Find assets
-    const dbAsset = release.assets.find((a) => a.name === dbConfig.fileName);
-    const manifestAsset = release.assets.find((a) => a.name === dbConfig.manifestName);
-
-    if (!dbAsset) return null;
-
-    // If manifest exists, try to get the real version from it
-    // This handles cases where DB version differs from Release tag
-    if (manifestAsset) {
-      try {
-        const manifest = (await fetchJson(manifestAsset.browser_download_url)) as {
-          version: string;
-        };
-        if (manifest && manifest.version) {
-          version = manifest.version;
-        }
-      } catch {
-        // Fallback to tag version if manifest fetch fails
+    // Iterate through releases to find the first one that:
+    // 1. Matches the tag prefix
+    // 2. Contains the required database asset
+    // This handles cases where the latest release failed and has no assets
+    for (const release of releases) {
+      if (!release.tag_name.startsWith(dbConfig.tagPrefix)) {
+        continue;
       }
+
+      // Find assets
+      const dbAsset = release.assets.find((a) => a.name === dbConfig.fileName);
+
+      // Skip releases that don't have the required database asset
+      if (!dbAsset) {
+        continue;
+      }
+
+      const manifestAsset = release.assets.find((a) => a.name === dbConfig.manifestName);
+
+      // Extract version from tag (e.g., examples-v0.1.0 -> 0.1.0)
+      let version = release.tag_name.replace(dbConfig.tagPrefix, '');
+
+      // If manifest exists, try to get the real version from it
+      // This handles cases where DB version differs from Release tag
+      if (manifestAsset) {
+        try {
+          const manifest = (await fetchJson(manifestAsset.browser_download_url)) as {
+            version: string;
+          };
+          if (manifest && manifest.version) {
+            version = manifest.version;
+          }
+        } catch {
+          // Fallback to tag version if manifest fetch fails
+        }
+      }
+
+      return {
+        version,
+        releaseId: release.id,
+        downloadUrl: dbAsset.browser_download_url,
+        manifestUrl: manifestAsset ? manifestAsset.browser_download_url : null,
+        size: dbAsset.size,
+        publishedAt: release.published_at,
+      };
     }
 
-    return {
-      version,
-      releaseId: release.id,
-      downloadUrl: dbAsset.browser_download_url,
-      manifestUrl: manifestAsset ? manifestAsset.browser_download_url : null,
-      size: dbAsset.size,
-      publishedAt: release.published_at,
-    };
+    // No release found with the required assets
+    return null;
   } catch {
     return null;
   }
