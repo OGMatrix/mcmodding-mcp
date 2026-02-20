@@ -81,6 +81,9 @@ async function main() {
 
     // Write manifest to data directory for release
     const dataDir = path.join(process.cwd(), 'data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
     const manifestPath = path.join(dataDir, 'db-manifest.json');
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 

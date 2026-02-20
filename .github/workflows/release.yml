@@ -39,7 +39,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
           cache: 'pnpm'
 
@@ -63,9 +63,7 @@ jobs:
 
       - name: Publish to npm
         if: ${{ github.event.inputs.skip_npm != 'true' }}
-        run: pnpm publish --provenance --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance --access public --no-git-checks
 
       - name: Index and prepare mappings
         env:
@@ -87,6 +85,11 @@ jobs:
         run: |
           echo "Generating new database manifest version..."
 
+          # Get the shared data directory path (where postinstall downloaded the docs DB)
+          DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/mcmodding-mcp"
+          echo "Using shared data directory: $DATA_DIR"
+          ls -lh "$DATA_DIR/" || echo "Warning: Shared data directory contents not found"
+
           # Regenerate manifest with a patch bump to ensure a new version is created
           # This makes the DB version independent of the package version
           pnpm run db:manifest -- --bump patch --changelog "Release $RELEASE_TAG" --release-tag "$RELEASE_TAG"
@@ -97,11 +100,11 @@ jobs:
 
           mkdir -p release-artifacts
 
-          # Documentation database artifacts
-          cp data/mcmodding-docs.db release-artifacts/
+          # Documentation database - from shared data directory (where postinstall downloaded it)
+          cp "$DATA_DIR/mcmodding-docs.db" release-artifacts/
           cp data/db-manifest.json release-artifacts/db-manifest.json
 
-          # Parchment mappings artifacts
+          # Parchment mappings - from ./data/ (where index-mappings created it)
           cp data/parchment-mappings.db release-artifacts/
           cp data/parchment-mappings-manifest.json release-artifacts/parchment-mappings-manifest.json
 
