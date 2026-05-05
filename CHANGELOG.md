@@ -1,3 +1,11 @@
+## [0.4.4](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.4.3...v0.4.4) (2026-05-05)
+
+### Bug Fixes
+
+* prevent manifest/DB hash mismatch causing broken auto-update on fresh install ([#22](https://github.com/OGMatrix/mcmodding-mcp/issues/22))
+* disable stale semantic-release workflow that conflicted with release.yml
+* add MCMODDING_SKIP_AUTO_UPDATE env var for startup bypass
+
 ## [0.4.3](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.4.2...v0.4.3) (2026-02-18)
 
 ### Bug Fixes
