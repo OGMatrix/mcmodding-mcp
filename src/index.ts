@@ -334,20 +334,24 @@ server.setRequestHandler(ReadResourceRequestSchema, (request) => {
 
 // Start the server
 async function main() {
-  // Check for database updates on startup
-  try {
-    console.error('[DbVersioning] Checking for database updates...');
-    const versioning = new DbVersioning();
-    const updated = await versioning.autoUpdate();
-    console.error('[DbVersioning] Update check complete');
-    if (updated) {
-      console.error('[DbVersioning] Database updated. Restart recommended for best results.');
-    } else {
-      console.error('[DbVersioning] Database is up to date');
+  // Check for database updates on startup (skip if MCMODDING_SKIP_AUTO_UPDATE is set)
+  if (process.env.MCMODDING_SKIP_AUTO_UPDATE) {
+    console.error('[DbVersioning] Auto-update skipped (MCMODDING_SKIP_AUTO_UPDATE is set)');
+  } else {
+    try {
+      console.error('[DbVersioning] Checking for database updates...');
+      const versioning = new DbVersioning();
+      const updated = await versioning.autoUpdate();
+      console.error('[DbVersioning] Update check complete');
+      if (updated) {
+        console.error('[DbVersioning] Database updated. Restart recommended for best results.');
+      } else {
+        console.error('[DbVersioning] Database is up to date');
+      }
+    } catch (error) {
+      console.error('[DbVersioning] Error checking for updates:', error);
+      // Continue startup even if update fails
     }
-  } catch (error) {
-    console.error('[DbVersioning] Error checking for updates:', error);
-    // Continue startup even if update fails
   }
 
   const transport = new StdioServerTransport();

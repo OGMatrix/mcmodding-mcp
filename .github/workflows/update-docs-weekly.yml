@@ -68,8 +68,30 @@ jobs:
 
       - name: Generate Documentation Database Manifest
         run: |
-          # Generate manifest with a patch bump
-          pnpm run db:manifest -- --bump patch --changelog "Weekly update for $LATEST_TAG" --release-tag "$LATEST_TAG"
+          # STEP 1: Copy the freshly-indexed DB into release-artifacts so the
+          # manifest is hashed from the exact file that will be uploaded.
+          mkdir -p release-artifacts
+          cp data/mcmodding-docs.db release-artifacts/mcmodding-docs.db
+
+          # STEP 2: Generate manifest from the copied file via --db-path.
+          # This guarantees hash/size in db-manifest.json match the upload.
+          pnpm run db:manifest -- --bump patch \
+            --changelog "Weekly update for $LATEST_TAG" \
+            --release-tag "$LATEST_TAG" \
+            --db-path ./release-artifacts/mcmodding-docs.db
+
+          # STEP 3: Verify consistency before uploading.
+          EXPECTED_HASH=$(node -p "require('./data/db-manifest.json').hash")
+          ACTUAL_HASH=$(sha256sum release-artifacts/mcmodding-docs.db | awk '{print $1}')
+          if [ "$EXPECTED_HASH" != "$ACTUAL_HASH" ]; then
+            echo "ERROR: Hash mismatch!"
+            echo "  Manifest: $EXPECTED_HASH"
+            echo "  Actual:   $ACTUAL_HASH"
+            exit 1
+          fi
+          echo "Hash verified: $ACTUAL_HASH"
+
+          cp data/db-manifest.json release-artifacts/db-manifest.json
         env:
           LATEST_TAG: ${{ steps.get_release.outputs.tag }}
 
@@ -104,8 +126,8 @@ jobs:
           TAG: ${{ steps.get_release.outputs.tag }}
         run: |
           echo "Uploading database assets to release $TAG..."
-          # Upload documentation database
-          gh release upload "$TAG" data/mcmodding-docs.db data/db-manifest.json --clobber
+          # Upload documentation database from release-artifacts (hash-verified)
+          gh release upload "$TAG" release-artifacts/mcmodding-docs.db release-artifacts/db-manifest.json --clobber
           # Upload mappings database
           gh release upload "$TAG" data/parchment-mappings.db data/parchment-mappings-manifest.json --clobber
 
