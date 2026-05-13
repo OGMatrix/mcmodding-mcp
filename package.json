@@ -79,7 +79,7 @@
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
     "@types/adm-zip": "^0.5.8",
-    "@types/better-sqlite3": "^7.6.12",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/jquery": "^3.5.33",
     "@types/node": "^22.10.1",
     "@typescript-eslint/eslint-plugin": "^8.59.3",
