@@ -103,58 +103,50 @@ jobs:
         run: |
           mkdir -p release-artifacts
 
+          # Parchment mappings are always available from the indexing step above.
+          cp data/parchment-mappings.db release-artifacts/
+          cp data/parchment-mappings-manifest.json release-artifacts/parchment-mappings-manifest.json
+
           echo "🔍 Finding previous release with mcmodding-docs.db asset..."
-          # Find the most recent release (other than the one we're currently publishing)
-          # that already has a mcmodding-docs.db asset to carry forward.
-          PREV_TAG=$(gh release list --limit 10 --json tagName,assets \
+          # gh release list --json does NOT include assets; use gh api instead.
+          PREV_TAG=$(gh api "repos/$GITHUB_REPOSITORY/releases" \
             --jq --arg cur "$RELEASE_TAG" \
-            '[.[] | select(.tagName != $cur) | select(.assets | any(.name == "mcmodding-docs.db"))] | .[0].tagName' \
+            '[.[] | select(.tag_name != $cur) | select(.assets | any(.name == "mcmodding-docs.db"))] | .[0].tag_name' \
             2>/dev/null || echo "")
 
           if [ -z "$PREV_TAG" ]; then
-            echo "⚠️  No previous release with mcmodding-docs.db found. Skipping DB artifact upload."
-            exit 0
+            echo "⚠️  No previous release with mcmodding-docs.db found. Uploading mappings only."
+          else
+            echo "📥 Downloading mcmodding-docs.db from release: $PREV_TAG"
+            gh release download "$PREV_TAG" \
+              --pattern "mcmodding-docs.db" \
+              --output ./data/mcmodding-docs.db \
+              --clobber
+
+            echo "Downloaded: $(ls -lh ./data/mcmodding-docs.db)"
+
+            echo "📋 Generating manifest with --db-path ./data/mcmodding-docs.db ..."
+            pnpm run db:manifest -- \
+              --bump patch \
+              --changelog "Release $RELEASE_TAG" \
+              --release-tag "$RELEASE_TAG" \
+              --db-path ./data/mcmodding-docs.db
+
+            # Hard verification: fail CI if the manifest hash does not match the DB
+            DB_HASH=$(sha256sum ./data/mcmodding-docs.db | cut -d' ' -f1)
+            MANIFEST_HASH=$(node -p "require('./data/db-manifest.json').hash")
+            if [ "$DB_HASH" != "$MANIFEST_HASH" ]; then
+              echo "ERROR: manifest hash does not match DB: $DB_HASH != $MANIFEST_HASH"
+              exit 1
+            fi
+            echo "✅ Hash verified: $DB_HASH"
+
+            DB_VERSION=$(node -p "require('./data/db-manifest.json').version")
+            echo "Generated DB Manifest Version: $DB_VERSION"
+
+            cp ./data/mcmodding-docs.db release-artifacts/mcmodding-docs.db
+            cp data/db-manifest.json release-artifacts/db-manifest.json
           fi
-
-          echo "📥 Downloading mcmodding-docs.db from release: $PREV_TAG"
-          # Download directly into ./data/ so --db-path can read the version from
-          # the existing ./data/db-manifest.json for correct version bumping.
-          gh release download "$PREV_TAG" \
-            --pattern "mcmodding-docs.db" \
-            --output ./data/mcmodding-docs.db \
-            --clobber
-
-          echo "Downloaded: $(ls -lh ./data/mcmodding-docs.db)"
-
-          # Generate manifest from the EXACT file we just downloaded.
-          # --db-path guarantees the hash recorded in the manifest matches the
-          # bytes we will upload — this is the key fix for the v0.4.3/v0.4.4 mismatch.
-          echo "📋 Generating manifest with --db-path ./data/mcmodding-docs.db ..."
-          pnpm run db:manifest -- \
-            --bump patch \
-            --changelog "Release $RELEASE_TAG" \
-            --release-tag "$RELEASE_TAG" \
-            --db-path ./data/mcmodding-docs.db
-
-          # Hard verification: fail CI if the manifest hash does not match the DB
-          DB_HASH=$(sha256sum ./data/mcmodding-docs.db | cut -d' ' -f1)
-          MANIFEST_HASH=$(node -p "require('./data/db-manifest.json').hash")
-          if [ "$DB_HASH" != "$MANIFEST_HASH" ]; then
-            echo "ERROR: manifest hash does not match DB: $DB_HASH != $MANIFEST_HASH"
-            exit 1
-          fi
-          echo "✅ Hash verified: $DB_HASH"
-
-          # Log the new DB version
-          DB_VERSION=$(node -p "require('./data/db-manifest.json').version")
-          echo "Generated DB Manifest Version: $DB_VERSION"
-
-          cp ./data/mcmodding-docs.db release-artifacts/mcmodding-docs.db
-          cp data/db-manifest.json release-artifacts/db-manifest.json
-
-          # Parchment mappings - from ./data/ (where index-mappings created it)
-          cp data/parchment-mappings.db release-artifacts/
-          cp data/parchment-mappings-manifest.json release-artifacts/parchment-mappings-manifest.json
 
           echo "📦 Release artifacts:"
           ls -lh release-artifacts/
@@ -163,6 +155,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.RELEASE_TAG }}
+          fail_on_unmatched_files: false
           files: |
             release-artifacts/mcmodding-docs.db
             release-artifacts/db-manifest.json
