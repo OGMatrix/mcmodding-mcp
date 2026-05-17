@@ -184,8 +184,8 @@ jobs:
       - name: Log release summary
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          DB_VERSION=$(node -p "require('./data/db-manifest.json').version")
-          MAPPINGS_VERSION=$(node -p "require('./data/parchment-mappings-manifest.json').version")
+          DB_VERSION=$(node -p "try{require('./data/db-manifest.json').version}catch(e){'N/A'}")
+          MAPPINGS_VERSION=$(node -p "try{require('./data/parchment-mappings-manifest.json').version}catch(e){'N/A'}")
           echo "## 🎉 Release Published Successfully!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
