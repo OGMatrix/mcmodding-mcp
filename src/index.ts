@@ -42,7 +42,7 @@ if (process.argv.includes('manage')) {
 const server = new Server(
   {
     name: 'mcmodding-mcp',
-    version: '0.4.4',
+    version: '0.4.5',
   },
   {
     capabilities: {

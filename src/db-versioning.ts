@@ -143,13 +143,25 @@ export class DbVersioning {
       const local = this.getLocalManifest();
       if (!local) {
         console.error('[DbVersioning] No local manifest found, update available');
-        return true;
       }
 
       const remote = await this.getRemoteManifest();
       if (!remote) {
         console.error('[DbVersioning] Could not fetch remote manifest');
         return false;
+      }
+
+      // If we previously tried and failed to download this exact version+hash,
+      // skip re-downloading to prevent an infinite loop caused by a broken release.
+      if (this.isVersionMarkedFailed(remote)) {
+        console.error(
+          `[DbVersioning] Skipping update: version ${remote.version} previously failed hash verification (broken release asset)`
+        );
+        return false;
+      }
+
+      if (!local) {
+        return true;
       }
 
       const comparison = this.compareVersions(local.version, remote.version);
@@ -161,6 +173,24 @@ export class DbVersioning {
       return false;
     } catch (error) {
       console.error('[DbVersioning] Error checking for updates:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check whether the given remote manifest has been marked as a failed download
+   * (i.e. its hash did not match the actual file bytes).
+   */
+  private isVersionMarkedFailed(manifest: DbVersionManifest): boolean {
+    const failedMarkerPath = path.join(this.dataDir, 'db-download-failed.json');
+    if (!fs.existsSync(failedMarkerPath)) return false;
+    try {
+      const failed = JSON.parse(fs.readFileSync(failedMarkerPath, 'utf-8')) as {
+        version: string;
+        hash: string;
+      };
+      return failed.version === manifest.version && failed.hash === manifest.hash;
+    } catch {
       return false;
     }
   }
@@ -202,11 +232,45 @@ export class DbVersioning {
           `[DbVersioning] Hash mismatch: expected ${manifest.hash}, got ${downloadedHash}`
         );
         fs.unlinkSync(tempPath);
+
+        // Save a "failed download" marker so subsequent startups skip re-downloading
+        // the same broken release, preventing an infinite download loop.
+        const failedMarkerPath = path.join(this.dataDir, 'db-download-failed.json');
+        try {
+          fs.writeFileSync(
+            failedMarkerPath,
+            JSON.stringify(
+              {
+                version: manifest.version,
+                hash: manifest.hash,
+                actualHash: downloadedHash,
+                failedAt: new Date().toISOString(),
+                reason: `Hash mismatch: expected ${manifest.hash}, got ${downloadedHash}`,
+              },
+              null,
+              2
+            )
+          );
+          console.error(
+            `[DbVersioning] Saved failed-download marker (version ${manifest.version}) to prevent re-download loops`
+          );
+        } catch (markerErr) {
+          console.error('[DbVersioning] Could not save failed-download marker:', markerErr);
+        }
+
         return false;
       }
 
       // Replace database
       fs.renameSync(tempPath, this.dbPath);
+
+      // Clear any previous failed-download marker now that we have a good DB
+      const failedMarkerPath = path.join(this.dataDir, 'db-download-failed.json');
+      if (fs.existsSync(failedMarkerPath)) {
+        fs.unlinkSync(failedMarkerPath);
+        console.error('[DbVersioning] Cleared failed-download marker after successful update');
+      }
+
       console.error(`[DbVersioning] Successfully updated database to version ${manifest.version}`);
 
       return true;

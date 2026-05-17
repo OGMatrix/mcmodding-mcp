@@ -1,12 +1,7 @@
 /* eslint-disable no-console */
 /**
  * Generate database version manifest and prepare for release
- * Usage: tsx scripts/generate-db-manifest.ts [--version VERSION] [--type TYPE] [--changelog TEXT] [--db-path PATH]
- *
- * --db-path PATH  Path to the database file to hash. When provided, the manifest
- *                 is generated from this exact file rather than the default shared
- *                 data directory. This guarantees the manifest hash matches the
- *                 file that will actually be uploaded to the release.
+ * Usage: tsx scripts/generate-db-manifest.ts [--version VERSION] [--type TYPE] [--changelog TEXT]
  */
 
 import { DbVersioning } from '../src/db-versioning.js';
@@ -46,16 +41,17 @@ function bumpVersion(version: string, type: string): string {
 async function main() {
   const args = process.argv.slice(2);
 
-  // Parse --db-path early so we can construct DbVersioning with the right path
+  // Pre-scan for --db-path before creating DbVersioning, so the constructor
+  // receives the correct path and both getLocalManifest() and createManifest()
+  // operate on the same file that will actually be uploaded.
   let dbPath: string | undefined;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--db-path' && args[i + 1]) {
-      dbPath = path.resolve(args[++i]);
+      dbPath = path.resolve(args[i + 1]);
+      break;
     }
   }
 
-  // If --db-path is provided, pass it to DbVersioning so createManifest hashes
-  // the exact file that will be uploaded (not the shared data dir copy).
   const versioning = new DbVersioning(dbPath);
   const localManifest = versioning.getLocalManifest();
 
@@ -80,13 +76,9 @@ async function main() {
       changelog = args[++i];
     } else if (args[i] === '--release-tag' && args[i + 1]) {
       releaseTag = args[++i];
-    } else if (args[i] === '--db-path') {
-      i++; // already consumed above
+    } else if (args[i] === '--db-path' && args[i + 1]) {
+      i++; // already handled in pre-scan above, skip value
     }
-  }
-
-  if (dbPath) {
-    console.log(`📂 Using explicit DB path: ${dbPath}`);
   }
 
   try {

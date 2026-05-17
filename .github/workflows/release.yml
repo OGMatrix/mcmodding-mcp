@@ -1,7 +1,11 @@
 name: Release
 
 on:
-  # Triggers when release-please creates a release
+  # Triggers on merge/push to prod branch
+  push:
+    branches: [prod]
+
+  # Triggers when a GitHub Release is published
   release:
     types: [published]
 
@@ -24,7 +28,7 @@ jobs:
   publish:
     name: Build & Publish
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
 
     steps:
       - name: Checkout code
@@ -53,6 +57,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Compute release tag
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          RELEASE_TAG="${{ github.event.release.tag_name }}"
+          if [ -z "$RELEASE_TAG" ]; then
+            RELEASE_TAG="v$VERSION"
+          fi
+          echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_ENV
+          echo "Computed release tag: $RELEASE_TAG"
+
       - name: Run validation
         run: pnpm run validate
 
@@ -66,8 +80,6 @@ jobs:
         run: npm publish --provenance --access public --no-git-checks
 
       - name: Index and prepare mappings
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           echo "📋 Indexing Parchment mappings..."
           pnpm run index-mappings:force
@@ -81,50 +93,58 @@ jobs:
 
       - name: Prepare database release artifacts
         env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get the shared data directory path (where postinstall downloaded the docs DB)
-          DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/mcmodding-mcp"
-          echo "Using shared data directory: $DATA_DIR"
-          ls -lh "$DATA_DIR/" || echo "Warning: Shared data directory contents not found"
-
           mkdir -p release-artifacts
 
-          # STEP 1: Copy the DB file FIRST so the manifest is generated from the
-          # exact same bytes that will be uploaded. This prevents any divergence
-          # between the hashed file and the uploaded file.
-          echo "Copying docs database..."
-          cp "$DATA_DIR/mcmodding-docs.db" release-artifacts/mcmodding-docs.db
+          echo "🔍 Finding previous release with mcmodding-docs.db asset..."
+          # Find the most recent release (other than the one we're currently publishing)
+          # that already has a mcmodding-docs.db asset to carry forward.
+          PREV_TAG=$(gh release list --limit 10 --json tagName,assets \
+            --jq --arg cur "$RELEASE_TAG" \
+            '[.[] | select(.tagName != $cur) | select(.assets | any(.name == "mcmodding-docs.db"))] | .[0].tagName' \
+            2>/dev/null || echo "")
 
-          # STEP 2: Generate manifest by hashing release-artifacts/mcmodding-docs.db
-          # directly (via --db-path). This guarantees hash/size in the manifest
-          # match the file we are about to upload — no intermediate file swaps possible.
-          echo "Generating database manifest from release artifact..."
-          pnpm run db:manifest -- --bump patch \
+          if [ -z "$PREV_TAG" ]; then
+            echo "⚠️  No previous release with mcmodding-docs.db found. Skipping DB artifact upload."
+            exit 0
+          fi
+
+          echo "📥 Downloading mcmodding-docs.db from release: $PREV_TAG"
+          # Download directly into ./data/ so --db-path can read the version from
+          # the existing ./data/db-manifest.json for correct version bumping.
+          gh release download "$PREV_TAG" \
+            --pattern "mcmodding-docs.db" \
+            --output ./data/mcmodding-docs.db \
+            --clobber
+
+          echo "Downloaded: $(ls -lh ./data/mcmodding-docs.db)"
+
+          # Generate manifest from the EXACT file we just downloaded.
+          # --db-path guarantees the hash recorded in the manifest matches the
+          # bytes we will upload — this is the key fix for the v0.4.3/v0.4.4 mismatch.
+          echo "📋 Generating manifest with --db-path ./data/mcmodding-docs.db ..."
+          pnpm run db:manifest -- \
+            --bump patch \
             --changelog "Release $RELEASE_TAG" \
             --release-tag "$RELEASE_TAG" \
-            --db-path ./release-artifacts/mcmodding-docs.db
+            --db-path ./data/mcmodding-docs.db
+
+          # Hard verification: fail CI if the manifest hash does not match the DB
+          DB_HASH=$(sha256sum ./data/mcmodding-docs.db | cut -d' ' -f1)
+          MANIFEST_HASH=$(node -p "require('./data/db-manifest.json').hash")
+          if [ "$DB_HASH" != "$MANIFEST_HASH" ]; then
+            echo "ERROR: manifest hash does not match DB: $DB_HASH != $MANIFEST_HASH"
+            exit 1
+          fi
+          echo "✅ Hash verified: $DB_HASH"
 
           # Log the new DB version
           DB_VERSION=$(node -p "require('./data/db-manifest.json').version")
           echo "Generated DB Manifest Version: $DB_VERSION"
 
-          # Copy the generated manifest into release-artifacts
+          cp ./data/mcmodding-docs.db release-artifacts/mcmodding-docs.db
           cp data/db-manifest.json release-artifacts/db-manifest.json
-
-          # STEP 3: Verify hash consistency before uploading.
-          # If this fails the release job fails loudly rather than publishing
-          # a broken manifest/DB pair.
-          echo "Verifying manifest hash matches release artifact..."
-          EXPECTED_HASH=$(node -p "require('./release-artifacts/db-manifest.json').hash")
-          ACTUAL_HASH=$(sha256sum release-artifacts/mcmodding-docs.db | awk '{print $1}')
-          if [ "$EXPECTED_HASH" != "$ACTUAL_HASH" ]; then
-            echo "ERROR: Hash mismatch!"
-            echo "  Manifest: $EXPECTED_HASH"
-            echo "  Actual:   $ACTUAL_HASH"
-            exit 1
-          fi
-          echo "Hash verified: $ACTUAL_HASH"
 
           # Parchment mappings - from ./data/ (where index-mappings created it)
           cp data/parchment-mappings.db release-artifacts/
@@ -136,7 +156,7 @@ jobs:
       - name: Upload database to release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.event.release.tag_name || format('v{0}', env.VERSION) }}
+          tag_name: ${{ env.RELEASE_TAG }}
           files: |
             release-artifacts/mcmodding-docs.db
             release-artifacts/db-manifest.json
@@ -160,7 +180,6 @@ jobs:
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ github.event.release.tag_name }}
 
       - name: Log release summary
         run: |

@@ -68,30 +68,19 @@ jobs:
 
       - name: Generate Documentation Database Manifest
         run: |
-          # STEP 1: Copy the freshly-indexed DB into release-artifacts so the
-          # manifest is hashed from the exact file that will be uploaded.
-          mkdir -p release-artifacts
-          cp data/mcmodding-docs.db release-artifacts/mcmodding-docs.db
+          # Generate manifest from the EXACT file we just indexed.
+          # --db-path ensures the hash is computed from ./data/mcmodding-docs.db,
+          # not from ~/.local/share/mcmodding-mcp/ (postinstall's stale copy).
+          pnpm run db:manifest -- --bump patch --changelog "Weekly update for $LATEST_TAG" --release-tag "$LATEST_TAG" --db-path ./data/mcmodding-docs.db
 
-          # STEP 2: Generate manifest from the copied file via --db-path.
-          # This guarantees hash/size in db-manifest.json match the upload.
-          pnpm run db:manifest -- --bump patch \
-            --changelog "Weekly update for $LATEST_TAG" \
-            --release-tag "$LATEST_TAG" \
-            --db-path ./release-artifacts/mcmodding-docs.db
-
-          # STEP 3: Verify consistency before uploading.
-          EXPECTED_HASH=$(node -p "require('./data/db-manifest.json').hash")
-          ACTUAL_HASH=$(sha256sum release-artifacts/mcmodding-docs.db | awk '{print $1}')
-          if [ "$EXPECTED_HASH" != "$ACTUAL_HASH" ]; then
-            echo "ERROR: Hash mismatch!"
-            echo "  Manifest: $EXPECTED_HASH"
-            echo "  Actual:   $ACTUAL_HASH"
+          # Verify: sha256 of the indexed DB must match what we just wrote into the manifest
+          DB_HASH=$(sha256sum ./data/mcmodding-docs.db | cut -d' ' -f1)
+          MANIFEST_HASH=$(node -p "require('./data/db-manifest.json').hash")
+          if [ "$DB_HASH" != "$MANIFEST_HASH" ]; then
+            echo "ERROR: manifest hash does not match indexed DB: $DB_HASH != $MANIFEST_HASH"
             exit 1
           fi
-          echo "Hash verified: $ACTUAL_HASH"
-
-          cp data/db-manifest.json release-artifacts/db-manifest.json
+          echo "Hash verified: $DB_HASH"
         env:
           LATEST_TAG: ${{ steps.get_release.outputs.tag }}
 
@@ -126,8 +115,8 @@ jobs:
           TAG: ${{ steps.get_release.outputs.tag }}
         run: |
           echo "Uploading database assets to release $TAG..."
-          # Upload documentation database from release-artifacts (hash-verified)
-          gh release upload "$TAG" release-artifacts/mcmodding-docs.db release-artifacts/db-manifest.json --clobber
+          # Upload documentation database
+          gh release upload "$TAG" data/mcmodding-docs.db data/db-manifest.json --clobber
           # Upload mappings database
           gh release upload "$TAG" data/parchment-mappings.db data/parchment-mappings-manifest.json --clobber
 
