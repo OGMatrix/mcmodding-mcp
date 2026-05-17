@@ -82,26 +82,57 @@ jobs:
       - name: Prepare database release artifacts
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Generating new database manifest version..."
+          mkdir -p release-artifacts
 
-          # Get the shared data directory path (where postinstall downloaded the docs DB)
-          DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/mcmodding-mcp"
-          echo "Using shared data directory: $DATA_DIR"
-          ls -lh "$DATA_DIR/" || echo "Warning: Shared data directory contents not found"
+          echo "🔍 Finding previous release with mcmodding-docs.db asset..."
+          # Find the most recent release (other than the one we're currently publishing)
+          # that already has a mcmodding-docs.db asset to carry forward.
+          PREV_TAG=$(gh release list --limit 10 --json tagName,assets \
+            --jq --arg cur "$RELEASE_TAG" \
+            '[.[] | select(.tagName != $cur) | select(.assets | any(.name == "mcmodding-docs.db"))] | .[0].tagName' \
+            2>/dev/null || echo "")
 
-          # Regenerate manifest with a patch bump to ensure a new version is created
-          # This makes the DB version independent of the package version
-          pnpm run db:manifest -- --bump patch --changelog "Release $RELEASE_TAG" --release-tag "$RELEASE_TAG"
+          if [ -z "$PREV_TAG" ]; then
+            echo "⚠️  No previous release with mcmodding-docs.db found. Skipping DB artifact upload."
+            exit 0
+          fi
+
+          echo "📥 Downloading mcmodding-docs.db from release: $PREV_TAG"
+          # Download directly into ./data/ so --db-path can read the version from
+          # the existing ./data/db-manifest.json for correct version bumping.
+          gh release download "$PREV_TAG" \
+            --pattern "mcmodding-docs.db" \
+            --output ./data/mcmodding-docs.db \
+            --clobber
+
+          echo "Downloaded: $(ls -lh ./data/mcmodding-docs.db)"
+
+          # Generate manifest from the EXACT file we just downloaded.
+          # --db-path guarantees the hash recorded in the manifest matches the
+          # bytes we will upload — this is the key fix for the v0.4.3/v0.4.4 mismatch.
+          echo "📋 Generating manifest with --db-path ./data/mcmodding-docs.db ..."
+          pnpm run db:manifest -- \
+            --bump patch \
+            --changelog "Release $RELEASE_TAG" \
+            --release-tag "$RELEASE_TAG" \
+            --db-path ./data/mcmodding-docs.db
+
+          # Hard verification: fail CI if the manifest hash does not match the DB
+          DB_HASH=$(sha256sum ./data/mcmodding-docs.db | cut -d' ' -f1)
+          MANIFEST_HASH=$(node -p "require('./data/db-manifest.json').hash")
+          if [ "$DB_HASH" != "$MANIFEST_HASH" ]; then
+            echo "ERROR: manifest hash does not match DB: $DB_HASH != $MANIFEST_HASH"
+            exit 1
+          fi
+          echo "✅ Hash verified: $DB_HASH"
 
           # Log the new DB version
           DB_VERSION=$(node -p "require('./data/db-manifest.json').version")
           echo "Generated DB Manifest Version: $DB_VERSION"
 
-          mkdir -p release-artifacts
-
-          # Documentation database - from shared data directory (where postinstall downloaded it)
-          cp "$DATA_DIR/mcmodding-docs.db" release-artifacts/
+          cp ./data/mcmodding-docs.db release-artifacts/mcmodding-docs.db
           cp data/db-manifest.json release-artifacts/db-manifest.json
 
           # Parchment mappings - from ./data/ (where index-mappings created it)

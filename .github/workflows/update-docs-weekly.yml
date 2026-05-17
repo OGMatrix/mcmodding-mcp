@@ -68,8 +68,19 @@ jobs:
 
       - name: Generate Documentation Database Manifest
         run: |
-          # Generate manifest with a patch bump
-          pnpm run db:manifest -- --bump patch --changelog "Weekly update for $LATEST_TAG" --release-tag "$LATEST_TAG"
+          # Generate manifest from the EXACT file we just indexed.
+          # --db-path ensures the hash is computed from ./data/mcmodding-docs.db,
+          # not from ~/.local/share/mcmodding-mcp/ (postinstall's stale copy).
+          pnpm run db:manifest -- --bump patch --changelog "Weekly update for $LATEST_TAG" --release-tag "$LATEST_TAG" --db-path ./data/mcmodding-docs.db
+
+          # Verify: sha256 of the indexed DB must match what we just wrote into the manifest
+          DB_HASH=$(sha256sum ./data/mcmodding-docs.db | cut -d' ' -f1)
+          MANIFEST_HASH=$(node -p "require('./data/db-manifest.json').hash")
+          if [ "$DB_HASH" != "$MANIFEST_HASH" ]; then
+            echo "ERROR: manifest hash does not match indexed DB: $DB_HASH != $MANIFEST_HASH"
+            exit 1
+          fi
+          echo "Hash verified: $DB_HASH"
         env:
           LATEST_TAG: ${{ steps.get_release.outputs.tag }}
 

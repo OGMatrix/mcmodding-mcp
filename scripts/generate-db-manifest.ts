@@ -40,7 +40,19 @@ function bumpVersion(version: string, type: string): string {
 
 async function main() {
   const args = process.argv.slice(2);
-  const versioning = new DbVersioning();
+
+  // Pre-scan for --db-path before creating DbVersioning, so the constructor
+  // receives the correct path and both getLocalManifest() and createManifest()
+  // operate on the same file that will actually be uploaded.
+  let dbPath: string | undefined;
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--db-path' && args[i + 1]) {
+      dbPath = path.resolve(args[i + 1]);
+      break;
+    }
+  }
+
+  const versioning = new DbVersioning(dbPath);
   const localManifest = versioning.getLocalManifest();
 
   // Default to existing manifest version or 0.1.0 if not found
@@ -64,6 +76,8 @@ async function main() {
       changelog = args[++i];
     } else if (args[i] === '--release-tag' && args[i + 1]) {
       releaseTag = args[++i];
+    } else if (args[i] === '--db-path' && args[i + 1]) {
+      i++; // already handled in pre-scan above, skip value
     }
   }
 
