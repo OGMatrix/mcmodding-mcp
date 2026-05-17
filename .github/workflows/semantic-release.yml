@@ -1,10 +1,9 @@
-name: Semantic Release
+name: Semantic Release (Disabled)
 
+# This workflow has been superseded by release.yml (release-please + GitHub release trigger).
+# Disabled to prevent failures from missing NPM_TOKEN / GH_TOKEN secrets.
 on:
-  push:
-    branches:
-      - prod
-  workflow_dispatch:
+  workflow_dispatch: # Manual trigger only - kept for reference
 
 permissions:
   contents: write
