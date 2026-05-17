@@ -108,10 +108,10 @@ jobs:
           cp data/parchment-mappings-manifest.json release-artifacts/parchment-mappings-manifest.json
 
           echo "🔍 Finding previous release with mcmodding-docs.db asset..."
-          # gh release list --json does NOT include assets; use gh api instead.
-          PREV_TAG=$(gh api "repos/$GITHUB_REPOSITORY/releases" \
-            --jq --arg cur "$RELEASE_TAG" \
-            '[.[] | select(.tag_name != $cur) | select(.assets | any(.name == "mcmodding-docs.db"))] | .[0].tag_name' \
+          # gh api --jq does not support --arg; pipe to jq directly.
+          PREV_TAG=$(gh api "repos/$GITHUB_REPOSITORY/releases" | \
+            jq -r --arg cur "$RELEASE_TAG" \
+            '[.[] | select(.tag_name != $cur) | select(.assets | any(.name == "mcmodding-docs.db"))] | .[0].tag_name // empty' \
             2>/dev/null || echo "")
 
           if [ -z "$PREV_TAG" ]; then
