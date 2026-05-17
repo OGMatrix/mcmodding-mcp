@@ -1,3 +1,13 @@
+## [0.4.5](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.4.4...v0.4.5) (2026-05-17)
+
+### Bug Fixes
+
+* upgrade better-sqlite3 to v12 for Node.js 24 compatibility ([#22](https://github.com/OGMatrix/mcmodding-mcp/issues/22))
+* resolve manifest/DB hash mismatch root cause — generate-db-manifest now hashes the exact uploaded file via --db-path
+* add poison-pill marker (db-download-failed.json) to prevent infinite re-download loops on broken release assets
+* fix weekly workflow to pass --db-path and verify sha256 before upload
+* release.yml: carry forward DB from previous release via gh release download; add push-to-prod trigger
+
 ## [0.4.4](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.4.3...v0.4.4) (2026-05-05)
 
 ### Bug Fixes

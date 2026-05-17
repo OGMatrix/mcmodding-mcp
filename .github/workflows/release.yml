@@ -1,7 +1,11 @@
 name: Release
 
 on:
-  # Triggers when release-please creates a release
+  # Triggers on merge/push to prod branch
+  push:
+    branches: [prod]
+
+  # Triggers when a GitHub Release is published
   release:
     types: [published]
 
@@ -24,7 +28,7 @@ jobs:
   publish:
     name: Build & Publish
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
 
     steps:
       - name: Checkout code
@@ -53,6 +57,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Compute release tag
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          RELEASE_TAG="${{ github.event.release.tag_name }}"
+          if [ -z "$RELEASE_TAG" ]; then
+            RELEASE_TAG="v$VERSION"
+          fi
+          echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_ENV
+          echo "Computed release tag: $RELEASE_TAG"
+
       - name: Run validation
         run: pnpm run validate
 
@@ -66,8 +80,6 @@ jobs:
         run: npm publish --provenance --access public --no-git-checks
 
       - name: Index and prepare mappings
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           echo "📋 Indexing Parchment mappings..."
           pnpm run index-mappings:force
@@ -81,7 +93,6 @@ jobs:
 
       - name: Prepare database release artifacts
         env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p release-artifacts
@@ -145,7 +156,7 @@ jobs:
       - name: Upload database to release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.event.release.tag_name || format('v{0}', env.VERSION) }}
+          tag_name: ${{ env.RELEASE_TAG }}
           files: |
             release-artifacts/mcmodding-docs.db
             release-artifacts/db-manifest.json
@@ -169,7 +180,6 @@ jobs:
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ github.event.release.tag_name }}
 
       - name: Log release summary
         run: |
