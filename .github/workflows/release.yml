@@ -77,7 +77,13 @@ jobs:
 
       - name: Publish to npm
         if: ${{ github.event.inputs.skip_npm != 'true' }}
-        run: npm publish --provenance --access public --no-git-checks
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "mcmodding-mcp@$VERSION" version 2>/dev/null | grep -q "$VERSION"; then
+            echo "⏭️  mcmodding-mcp@$VERSION already published — skipping."
+          else
+            npm publish --provenance --access public
+          fi
 
       - name: Index and prepare mappings
         run: |
