@@ -5,6 +5,7 @@ import path from 'path';
 import https from 'https';
 import readline from 'readline';
 import { getDefaultDataDir } from '../data-dir.js';
+import { createZstdDecompressStream, isNativeZstdSupported } from '../utils/zstd-stream.js';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CONFIGURATION
@@ -284,25 +285,43 @@ async function downloadFile(
 
         const totalSize = parseInt(res.headers['content-length'] || '0', 10);
         let downloadedSize = 0;
+        const isCompressed = url.includes('.zst');
 
-        res.on('data', (chunk: Buffer) => {
-          downloadedSize += chunk.length;
-          file.write(chunk);
+        if (isCompressed) {
+          const decompressor = createZstdDecompressStream();
+          res.on('data', (chunk: Buffer) => {
+            downloadedSize += chunk.length;
+            if (onProgress) {
+              onProgress(downloadedSize, totalSize);
+            }
+          });
+          res.pipe(decompressor).pipe(file);
+          file.on('finish', () => resolve());
+          decompressor.on('error', (err) => {
+            file.close();
+            fs.unlink(destPath, () => {});
+            reject(err);
+          });
+        } else {
+          res.on('data', (chunk: Buffer) => {
+            downloadedSize += chunk.length;
+            file.write(chunk);
 
-          if (onProgress) {
-            onProgress(downloadedSize, totalSize);
-          }
-        });
+            if (onProgress) {
+              onProgress(downloadedSize, totalSize);
+            }
+          });
 
-        res.on('end', () => {
-          file.end();
-          resolve();
-        });
+          res.on('end', () => {
+            file.end();
+            resolve();
+          });
 
-        res.on('error', (err) => {
-          fs.unlink(destPath, () => {});
-          reject(err);
-        });
+          res.on('error', (err) => {
+            fs.unlink(destPath, () => {});
+            reject(err);
+          });
+        }
       })
       .on('error', (err) => {
         fs.unlink(destPath, () => {});
@@ -404,28 +423,50 @@ function downloadFileInteractive(
 
         const totalSize = parseInt(res.headers['content-length'] || '0', 10);
         let downloadedSize = 0;
+        const isCompressed = requestUrl.includes('.zst');
 
-        res.on('data', (chunk: Buffer) => {
-          if (progress.cancelled) return;
+        if (isCompressed) {
+          const decompressor = createZstdDecompressStream();
+          res.on('data', (chunk: Buffer) => {
+            if (progress.cancelled) return;
+            downloadedSize += chunk.length;
+            progress.update(downloadedSize, totalSize);
+          });
+          res.pipe(decompressor).pipe(file);
+          file.on('finish', () => {
+            cleanup();
+            if (!progress.cancelled) {
+              resolve();
+            }
+          });
+          decompressor.on('error', (err) => {
+            cleanup();
+            fs.unlink(destPath, () => {});
+            reject(err);
+          });
+        } else {
+          res.on('data', (chunk: Buffer) => {
+            if (progress.cancelled) return;
 
-          downloadedSize += chunk.length;
-          file.write(chunk);
-          progress.update(downloadedSize, totalSize);
-        });
+            downloadedSize += chunk.length;
+            file.write(chunk);
+            progress.update(downloadedSize, totalSize);
+          });
 
-        res.on('end', () => {
-          file.end();
-          cleanup();
-          if (!progress.cancelled) {
-            resolve();
-          }
-        });
+          res.on('end', () => {
+            file.end();
+            cleanup();
+            if (!progress.cancelled) {
+              resolve();
+            }
+          });
 
-        res.on('error', (err) => {
-          cleanup();
-          fs.unlink(destPath, () => {});
-          reject(err);
-        });
+          res.on('error', (err) => {
+            cleanup();
+            fs.unlink(destPath, () => {});
+            reject(err);
+          });
+        }
       });
 
       req.on('error', (err) => {
@@ -710,8 +751,11 @@ async function getRemoteVersion(dbConfig: OptionalDb): Promise<RemoteInfo | null
         continue;
       }
 
-      // Find assets
-      const dbAsset = release.assets.find((a) => a.name === dbConfig.fileName);
+      // Find assets: prefer compressed (.db.zst) if native zstd is supported, otherwise uncompressed (.db)
+      const zstAsset = isNativeZstdSupported()
+        ? release.assets.find((a) => a.name === `${dbConfig.fileName}.zst`)
+        : undefined;
+      const dbAsset = zstAsset || release.assets.find((a) => a.name === dbConfig.fileName);
 
       // Skip releases that don't have the required database asset
       if (!dbAsset) {

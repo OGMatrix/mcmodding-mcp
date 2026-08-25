@@ -12,6 +12,18 @@ import path from 'path';
 import crypto from 'crypto';
 import https from 'https';
 import os from 'os';
+import zlib from 'zlib';
+import { Transform } from 'stream';
+function createDecompressorStream() {
+  if (typeof zlib.createZstdDecompress === 'function') {
+    const windowLogMaxParam = zlib.constants && zlib.constants.ZSTD_d_windowLogMax;
+    const options = windowLogMaxParam ? { params: { [windowLogMaxParam]: 29 } } : undefined;
+    return zlib.createZstdDecompress(options);
+  }
+  throw new Error(
+    `Native zstd decompression is not supported in this Node.js version (${process.version}). Please upgrade to Node.js >= 22.12.0 or Node.js 24+.`
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SHARED DATA DIRECTORY (must match src/data-dir.ts logic exactly)
@@ -636,23 +648,53 @@ async function downloadWithProgress(url, destPath, onProgress) {
 
           const total = parseInt(res.headers['content-length'], 10) || 0;
           let downloaded = 0;
+          const isCompressed = requestUrl.includes('.zst');
 
-          res.on('data', (chunk) => {
-            downloaded += chunk.length;
-            file.write(chunk);
-            if (onProgress) onProgress(downloaded, total);
-          });
+          if (isCompressed) {
+            let decompressor;
+            try {
+              decompressor = createDecompressorStream();
+            } catch (err) {
+              file.close();
+              if (fs.existsSync(destPath)) fs.unlinkSync(destPath);
+              reject(err);
+              return;
+            }
 
-          res.on('end', () => {
-            file.end();
-            resolve({ downloaded, total });
-          });
+            res.on('data', (chunk) => {
+              downloaded += chunk.length;
+              if (onProgress) onProgress(downloaded, total);
+            });
 
-          res.on('error', (err) => {
-            file.close();
-            fs.unlinkSync(destPath);
-            reject(err);
-          });
+            res.pipe(decompressor).pipe(file);
+
+            file.on('finish', () => {
+              resolve({ downloaded, total });
+            });
+
+            decompressor.on('error', (err) => {
+              file.close();
+              if (fs.existsSync(destPath)) fs.unlinkSync(destPath);
+              reject(err);
+            });
+          } else {
+            res.on('data', (chunk) => {
+              downloaded += chunk.length;
+              file.write(chunk);
+              if (onProgress) onProgress(downloaded, total);
+            });
+
+            res.on('end', () => {
+              file.end();
+              resolve({ downloaded, total });
+            });
+
+            res.on('error', (err) => {
+              file.close();
+              if (fs.existsSync(destPath)) fs.unlinkSync(destPath);
+              reject(err);
+            });
+          }
         })
         .on('error', (err) => {
           file.close();
@@ -676,7 +718,9 @@ async function fetchReleaseInfo() {
   // Find the first release that has the required assets
   for (const release of releases) {
     const hasManifest = release.assets.some((a) => a.name === 'db-manifest.json');
-    const hasDb = release.assets.some((a) => a.name === 'mcmodding-docs.db');
+    const hasDb = release.assets.some(
+      (a) => a.name === CONFIG.dbFileName || a.name === `${CONFIG.dbFileName}.zst`
+    );
 
     if (hasManifest && hasDb) {
       return release;
@@ -780,8 +824,12 @@ async function main() {
       manifest = await fetchManifest(manifestAsset.browser_download_url);
 
       // Find the database asset in the release to ensure we have the correct download URL
-      // This overrides the URL in the manifest which might be outdated or incorrect
-      const dbAsset = release.assets.find((a) => a.name === CONFIG.dbFileName);
+      // Prefer compressed (.db.zst) if native zstd is supported in this Node runtime, otherwise fallback to uncompressed (.db)
+      const supportsZstd = typeof zlib.createZstdDecompress === 'function';
+      const zstAsset = supportsZstd
+        ? release.assets.find((a) => a.name === `${CONFIG.dbFileName}.zst`)
+        : undefined;
+      const dbAsset = zstAsset || release.assets.find((a) => a.name === CONFIG.dbFileName);
       if (dbAsset) {
         manifest.downloadUrl = dbAsset.browser_download_url;
       }
