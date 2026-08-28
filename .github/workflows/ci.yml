@@ -14,6 +14,14 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         node-version: [20.x, 22.x]
+        exclude:
+          # Node 20 is EOL and better-sqlite3 no longer ships prebuilds for it,
+          # so this cell compiles it from source. The node-gyp bundled with
+          # pnpm cannot detect the VS 2026 (v18) toolchain on windows-latest
+          # (VS 2026 support landed in node-gyp 12.1.0, nodejs/node-gyp#3240).
+          # Node 20 stays covered on Linux/macOS, where the source build works.
+          - os: windows-latest
+            node-version: 20.x
 
     steps:
       - name: Checkout code
