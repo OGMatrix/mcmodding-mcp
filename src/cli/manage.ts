@@ -3,6 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
+import crypto from 'crypto';
 import readline from 'readline';
 import { getDefaultDataDir } from '../data-dir.js';
 import { createZstdDecompressStream, isNativeZstdSupported } from '../utils/zstd-stream.js';
@@ -253,6 +254,19 @@ async function fetchJson(url: string): Promise<unknown> {
         });
       })
       .on('error', (err) => reject(err instanceof Error ? err : new Error(String(err))));
+  });
+}
+
+/**
+ * Calculate the SHA256 hash of a file (streaming, safe for large files).
+ */
+export async function calculateFileHash(filePath: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash('sha256');
+    const stream = fs.createReadStream(filePath);
+    stream.on('data', (data) => hash.update(data));
+    stream.on('end', () => resolve(hash.digest('hex')));
+    stream.on('error', reject);
   });
 }
 
@@ -1006,6 +1020,18 @@ export async function runInstaller() {
     }
 
     try {
+      // Fetch the manifest up front so we can verify the downloaded file's
+      // integrity before installing it (the manifest hash is always the hash
+      // of the uncompressed database, for both .db and .db.zst assets).
+      let manifestData: { hash?: string } | null = null;
+      if (item.remoteInfo.manifestUrl) {
+        try {
+          manifestData = (await fetchJson(item.remoteInfo.manifestUrl)) as { hash?: string };
+        } catch {
+          manifestData = null;
+        }
+      }
+
       // Download DB to temp file first
       const progress = new ProgressDisplay(`Downloading ${item.fileName}`);
       console.log(); // Space for progress bar
@@ -1026,16 +1052,39 @@ export async function runInstaller() {
         throw err;
       }
 
+      // Verify integrity before installing (catches truncated or corrupted
+      // downloads, including silently-truncated zstd frames)
+      const expectedHash = manifestData?.hash;
+      if (expectedHash) {
+        console.log(`${c.dim}   Verifying integrity...${c.reset}`);
+        const actualHash = await calculateFileHash(tempDbPath);
+        if (actualHash !== expectedHash) {
+          if (fs.existsSync(tempDbPath)) {
+            fs.unlinkSync(tempDbPath);
+          }
+          console.error(
+            `${c.red}${sym.cross} Hash mismatch for ${item.fileName}: expected ${expectedHash}, got ${actualHash}${c.reset}`
+          );
+          failCount++;
+          continue;
+        }
+        console.log(`${c.dim}   ${sym.check} Integrity verified${c.reset}`);
+      }
+
       // Move temp file to final location (atomic on most systems)
       if (fs.existsSync(destDbPath)) {
         fs.unlinkSync(destDbPath);
       }
       fs.renameSync(tempDbPath, destDbPath);
 
-      // Download Manifest (if available)
+      // Save manifest (reuse the one we fetched for verification when possible)
       if (item.remoteInfo.manifestUrl) {
-        console.log(`${c.dim}   Fetching manifest...${c.reset}`);
-        await downloadFile(item.remoteInfo.manifestUrl, destManifestPath);
+        if (manifestData) {
+          fs.writeFileSync(destManifestPath, JSON.stringify(manifestData, null, 2));
+        } else {
+          console.log(`${c.dim}   Fetching manifest...${c.reset}`);
+          await downloadFile(item.remoteInfo.manifestUrl, destManifestPath);
+        }
       } else {
         // Create minimal manifest if missing
         const minimalManifest = {

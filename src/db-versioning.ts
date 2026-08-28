@@ -207,6 +207,7 @@ export class DbVersioning {
    * Download and verify database file
    */
   async downloadDatabase(manifest: DbVersionManifest): Promise<boolean> {
+    let tempPath: string | null = null;
     try {
       // Ensure data directory exists before downloading
       if (!fs.existsSync(this.dataDir)) {
@@ -229,11 +230,11 @@ export class DbVersioning {
       }
 
       // write downloaded file with streaming (and decompress if zstd)
-      const tempPath = `${this.dbPath}.tmp`;
-      const fileWriteStream = fs.createWriteStream(tempPath);
+      tempPath = `${this.dbPath}.tmp`;
       const isCompressed = manifest.downloadUrl.endsWith('.zst');
 
       if (response.body) {
+        const fileWriteStream = fs.createWriteStream(tempPath);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
         const nodeStream = Readable.fromWeb(response.body as any);
         if (isCompressed) {
@@ -299,6 +300,15 @@ export class DbVersioning {
       return true;
     } catch (error) {
       console.error('[DbVersioning] Error downloading database:', error);
+      // Clean up a partially-downloaded temp file (e.g. network drop or
+      // decompression failure) so it cannot be mistaken for a valid database.
+      if (tempPath && fs.existsSync(tempPath)) {
+        try {
+          fs.unlinkSync(tempPath);
+        } catch {
+          // Ignore cleanup errors; the original error is already logged.
+        }
+      }
       return false;
     }
   }
