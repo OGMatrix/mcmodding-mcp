@@ -21,7 +21,7 @@ function createDecompressorStream() {
     return zlib.createZstdDecompress(options);
   }
   throw new Error(
-    `Native zstd decompression is not supported in this Node.js version (${process.version}). Please upgrade to Node.js >= 22.12.0 or Node.js 24+.`
+    `Native zstd decompression is not supported in this Node.js version (${process.version}). Please upgrade to Node.js >= 22.15.0 or Node.js 24+.`
   );
 }
 
@@ -650,14 +650,22 @@ async function downloadWithProgress(url, destPath, onProgress) {
           let downloaded = 0;
           const isCompressed = requestUrl.includes('.zst');
 
+          const onError = (err) => {
+            file.close();
+            if (fs.existsSync(destPath)) {
+              try {
+                fs.unlinkSync(destPath);
+              } catch {}
+            }
+            reject(err);
+          };
+
           if (isCompressed) {
             let decompressor;
             try {
               decompressor = createDecompressorStream();
             } catch (err) {
-              file.close();
-              if (fs.existsSync(destPath)) fs.unlinkSync(destPath);
-              reject(err);
+              onError(err);
               return;
             }
 
@@ -666,16 +674,14 @@ async function downloadWithProgress(url, destPath, onProgress) {
               if (onProgress) onProgress(downloaded, total);
             });
 
+            res.on('error', onError);
+            decompressor.on('error', onError);
+            file.on('error', onError);
+
             res.pipe(decompressor).pipe(file);
 
             file.on('finish', () => {
               resolve({ downloaded, total });
-            });
-
-            decompressor.on('error', (err) => {
-              file.close();
-              if (fs.existsSync(destPath)) fs.unlinkSync(destPath);
-              reject(err);
             });
           } else {
             res.on('data', (chunk) => {

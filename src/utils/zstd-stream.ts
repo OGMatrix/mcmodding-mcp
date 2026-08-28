@@ -23,6 +23,6 @@ export function createZstdDecompressStream(): Transform {
   }
 
   throw new Error(
-    `Native zstd decompression is not supported in this Node.js version (${process.version}). Please upgrade to Node.js >= 22.12.0 or Node.js 24+.`
+    `Native zstd decompression is not supported in this Node.js version (${process.version}). Please upgrade to Node.js >= 22.15.0 or Node.js 24+.`
   );
 }

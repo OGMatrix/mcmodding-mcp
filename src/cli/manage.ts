@@ -289,19 +289,22 @@ async function downloadFile(
 
         if (isCompressed) {
           const decompressor = createZstdDecompressStream();
+          const onError = (err: Error) => {
+            file.close();
+            fs.unlink(destPath, () => {});
+            reject(err);
+          };
           res.on('data', (chunk: Buffer) => {
             downloadedSize += chunk.length;
             if (onProgress) {
               onProgress(downloadedSize, totalSize);
             }
           });
+          res.on('error', onError);
+          decompressor.on('error', onError);
+          file.on('error', onError);
           res.pipe(decompressor).pipe(file);
           file.on('finish', () => resolve());
-          decompressor.on('error', (err) => {
-            file.close();
-            fs.unlink(destPath, () => {});
-            reject(err);
-          });
         } else {
           res.on('data', (chunk: Buffer) => {
             downloadedSize += chunk.length;
@@ -427,22 +430,25 @@ function downloadFileInteractive(
 
         if (isCompressed) {
           const decompressor = createZstdDecompressStream();
+          const onError = (err: Error) => {
+            cleanup();
+            fs.unlink(destPath, () => {});
+            reject(err);
+          };
           res.on('data', (chunk: Buffer) => {
             if (progress.cancelled) return;
             downloadedSize += chunk.length;
             progress.update(downloadedSize, totalSize);
           });
+          res.on('error', onError);
+          decompressor.on('error', onError);
+          file.on('error', onError);
           res.pipe(decompressor).pipe(file);
           file.on('finish', () => {
             cleanup();
             if (!progress.cancelled) {
               resolve();
             }
-          });
-          decompressor.on('error', (err) => {
-            cleanup();
-            fs.unlink(destPath, () => {});
-            reject(err);
           });
         } else {
           res.on('data', (chunk: Buffer) => {

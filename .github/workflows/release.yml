@@ -28,6 +28,7 @@ jobs:
   publish:
     name: Build & Publish
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
 
     steps:
@@ -125,9 +126,12 @@ jobs:
             echo "⚠️  No previous release found."
           fi
 
+          # Fallback for initial repository setup / fresh builds with no prior releases:
+          # Triggers full documentation re-crawl with embeddings generation (index-docs includes --sitemap --embeddings).
+          # Runs with 8GB heap allocation matching the weekly update workflow.
           if [ ! -f ./data/mcmodding-docs.db ]; then
-            echo "🔨 Building documentation database index..."
-            pnpm run index-docs -- --sitemap
+            echo "🔨 No prior release database found. Running initial full documentation crawl & embeddings generation..."
+            NODE_OPTIONS="--max-old-space-size=8192" pnpm run index-docs -- --sitemap
           fi
 
           echo "Downloaded/Prepared: $(ls -lh ./data/mcmodding-docs.db)"
