@@ -1,3 +1,27 @@
+## [0.5.0](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.4.5...v0.5.0) (2026-08-28)
+
+### Features
+
+* add zstd database compression and streamed native client-side decompression with fallback — Node ≥ 22.15/24 clients download and stream-decompress `*.db.zst` assets (~82% smaller), older runtimes fall back to uncompressed assets ([#27](https://github.com/OGMatrix/mcmodding-mcp/pull/27))
+
+### Bug Fixes
+
+* verify downloaded database integrity against the manifest SHA256 hash before installing it (catches truncated/corrupted downloads, including silently-truncated zstd frames) ([#27](https://github.com/OGMatrix/mcmodding-mcp/pull/27))
+* clean up partial `.tmp` files when a database download or decompression fails so they cannot be mistaken for a valid database ([#27](https://github.com/OGMatrix/mcmodding-mcp/pull/27))
+* release.yml: use gh api for asset lookup; always upload mappings; handle missing DB gracefully
+* release.yml: pipe gh api to jq for --arg support in asset lookup
+* release.yml: skip npm publish if the version already exists; drop --no-git-checks
+* release.yml: guard release summary against missing data manifests
+
+### Tests
+
+* mock the embedding pipeline in index tests to remove CI network dependency — index tests now run in seconds instead of minutes, no model downloads in CI ([#28](https://github.com/OGMatrix/mcmodding-mcp/pull/28))
+* add integrity-verification unit tests and zstd download integration tests (skipped on runtimes without native zstd)
+
+### CI
+
+* exclude windows + Node 20 from the test matrix — Node 20 is EOL and better-sqlite3 no longer ships prebuilds for it; the pnpm-bundled node-gyp cannot detect the VS 2026 toolchain on windows-latest
+
 ## [0.4.5](https://github.com/OGMatrix/mcmodding-mcp/compare/v0.4.4...v0.4.5) (2026-05-17)
 
 ### Bug Fixes
