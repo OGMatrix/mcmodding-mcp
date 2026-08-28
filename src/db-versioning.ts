@@ -6,7 +6,12 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { Readable, pipeline } from 'stream';
+import { promisify } from 'util';
 import { getDefaultDbPath } from './data-dir.js';
+import { createZstdDecompressStream, isNativeZstdSupported } from './utils/zstd-stream.js';
+
+const streamPipeline = promisify(pipeline);
 
 export interface DbVersionManifest {
   version: string;
@@ -91,8 +96,11 @@ export class DbVersioning {
       const manifest = (await manifestResponse.json()) as DbVersionManifest;
 
       // Find the database asset in the release to ensure we have the correct download URL
-      // This overrides the URL in the manifest which might be outdated or incorrect
-      const dbAsset = release.assets.find((a) => a.name === 'mcmodding-docs.db');
+      // Prefer compressed (.db.zst) if native zstd is supported in this Node runtime, otherwise fallback to uncompressed (.db)
+      const zstAsset = isNativeZstdSupported()
+        ? release.assets.find((a) => a.name === 'mcmodding-docs.db.zst')
+        : undefined;
+      const dbAsset = zstAsset || release.assets.find((a) => a.name === 'mcmodding-docs.db');
       if (dbAsset) {
         manifest.downloadUrl = dbAsset.browser_download_url;
       }
@@ -199,6 +207,7 @@ export class DbVersioning {
    * Download and verify database file
    */
   async downloadDatabase(manifest: DbVersionManifest): Promise<boolean> {
+    let tempPath: string | null = null;
     try {
       // Ensure data directory exists before downloading
       if (!fs.existsSync(this.dataDir)) {
@@ -220,10 +229,25 @@ export class DbVersioning {
         console.error(`[DbVersioning] Created backup at ${backupPath}`);
       }
 
-      // Write downloaded file
-      const buffer = await response.arrayBuffer();
-      const tempPath = `${this.dbPath}.tmp`;
-      fs.writeFileSync(tempPath, Buffer.from(buffer));
+      // write downloaded file with streaming (and decompress if zstd)
+      tempPath = `${this.dbPath}.tmp`;
+      const isCompressed = manifest.downloadUrl.endsWith('.zst');
+
+      if (response.body) {
+        const fileWriteStream = fs.createWriteStream(tempPath);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+        const nodeStream = Readable.fromWeb(response.body as any);
+        if (isCompressed) {
+          console.error(`[DbVersioning] Decompressing zstd stream to ${tempPath}...`);
+          const decompressStream = createZstdDecompressStream();
+          await streamPipeline(nodeStream, decompressStream, fileWriteStream);
+        } else {
+          await streamPipeline(nodeStream, fileWriteStream);
+        }
+      } else {
+        const buffer = await response.arrayBuffer();
+        fs.writeFileSync(tempPath, Buffer.from(buffer));
+      }
 
       // Verify hash
       const downloadedHash = await this.calculateFileHash(tempPath);
@@ -276,6 +300,15 @@ export class DbVersioning {
       return true;
     } catch (error) {
       console.error('[DbVersioning] Error downloading database:', error);
+      // Clean up a partially-downloaded temp file (e.g. network drop or
+      // decompression failure) so it cannot be mistaken for a valid database.
+      if (tempPath && fs.existsSync(tempPath)) {
+        try {
+          fs.unlinkSync(tempPath);
+        } catch {
+          // Ignore cleanup errors; the original error is already logged.
+        }
+      }
       return false;
     }
   }

@@ -3,7 +3,9 @@ import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vite
 import * as fs from 'fs';
 import * as https from 'https';
 import * as readline from 'readline';
+import crypto from 'crypto';
 import { EventEmitter } from 'events';
+import { calculateFileHash } from './manage.js';
 
 // Mock dependencies
 vi.mock('fs');
@@ -605,5 +607,39 @@ describe('Symbols Configuration', () => {
   it('should have selection indicators', () => {
     expect(sym.selected).toBe('◉');
     expect(sym.unselected).toBe('○');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INTEGRITY VERIFICATION
+// The CLI installer verifies downloaded databases against the manifest hash
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('calculateFileHash', () => {
+  const content = Buffer.from('mcmodding-mcp hash verification test payload');
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('should compute the SHA256 of the streamed file contents', async () => {
+    const fakeStream = new EventEmitter();
+    vi.mocked(fs.createReadStream).mockReturnValue(fakeStream as unknown as fs.ReadStream);
+
+    const promise = calculateFileHash('/fake/mcmodding-docs.db');
+    fakeStream.emit('data', content);
+    fakeStream.emit('end');
+
+    await expect(promise).resolves.toBe(crypto.createHash('sha256').update(content).digest('hex'));
+  });
+
+  it('should reject when the read stream errors', async () => {
+    const fakeStream = new EventEmitter();
+    vi.mocked(fs.createReadStream).mockReturnValue(fakeStream as unknown as fs.ReadStream);
+
+    const promise = calculateFileHash('/fake/missing.db');
+    fakeStream.emit('error', new Error('ENOENT: no such file or directory'));
+
+    await expect(promise).rejects.toThrow('ENOENT');
   });
 });
