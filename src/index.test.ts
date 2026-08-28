@@ -356,7 +356,7 @@ describe('handleExplainConcept', () => {
           'max 100 characters'
         );
       }
-    }, 120000);
+    }, 300000); // 5 minutes - real LLM round-trip, slow in CI
   });
 });
 
@@ -617,7 +617,7 @@ describe('Edge Cases', () => {
       const result = await handleExplainConcept({ concept: '日本語' });
       // Should not throw, validation should pass
       expect(result).toBeDefined();
-    }, 120000);
+    }, 300000); // 5 minutes - real LLM round-trip, slow in CI
 
     it('should handle emoji in query', () => {
       const result = handleSearchDocs({ query: '🎮 minecraft' });
@@ -699,7 +699,7 @@ describe('Tool Response Format', () => {
       expect(content.length).toBeGreaterThan(0);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(content[0]).toHaveProperty('type');
-    });
+    }, 300000); // 5 minutes - real search + LLM round-trip, slow in CI
 
     it('getExample should return valid CallToolResult', async () => {
       const result = await handleGetExample({ topic: 'test' });
@@ -713,7 +713,7 @@ describe('Tool Response Format', () => {
 
       expect(result).toHaveProperty('content');
       expect(Array.isArray(result.content)).toBe(true);
-    }, 120000); // 2 minutes - embedding model init is slow in CI
+    }, 300000); // 5 minutes - embedding model init + LLM round-trip is slow in CI
 
     it('getMinecraftVersion should return valid CallToolResult', () => {
       const result = handleGetMinecraftVersion({});
