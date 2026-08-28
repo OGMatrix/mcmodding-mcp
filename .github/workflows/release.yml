@@ -28,6 +28,7 @@ jobs:
   publish:
     name: Build & Publish
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
 
     steps:
@@ -106,6 +107,7 @@ jobs:
           # Parchment mappings are always available from the indexing step above.
           cp data/parchment-mappings.db release-artifacts/
           cp data/parchment-mappings-manifest.json release-artifacts/parchment-mappings-manifest.json
+          zstd --ultra -20 -T0 --long=29 release-artifacts/parchment-mappings.db -o release-artifacts/parchment-mappings.db.zst
 
           echo "🔍 Finding previous release with mcmodding-docs.db asset..."
           # gh api --jq does not support --arg; pipe to jq directly.
@@ -114,39 +116,48 @@ jobs:
             '[.[] | select(.tag_name != $cur) | select(.assets | any(.name == "mcmodding-docs.db"))] | .[0].tag_name // empty' \
             2>/dev/null || echo "")
 
-          if [ -z "$PREV_TAG" ]; then
-            echo "⚠️  No previous release with mcmodding-docs.db found. Uploading mappings only."
-          else
+          if [ -n "$PREV_TAG" ]; then
             echo "📥 Downloading mcmodding-docs.db from release: $PREV_TAG"
             gh release download "$PREV_TAG" \
               --pattern "mcmodding-docs.db" \
               --output ./data/mcmodding-docs.db \
               --clobber
-
-            echo "Downloaded: $(ls -lh ./data/mcmodding-docs.db)"
-
-            echo "📋 Generating manifest with --db-path ./data/mcmodding-docs.db ..."
-            pnpm run db:manifest -- \
-              --bump patch \
-              --changelog "Release $RELEASE_TAG" \
-              --release-tag "$RELEASE_TAG" \
-              --db-path ./data/mcmodding-docs.db
-
-            # Hard verification: fail CI if the manifest hash does not match the DB
-            DB_HASH=$(sha256sum ./data/mcmodding-docs.db | cut -d' ' -f1)
-            MANIFEST_HASH=$(node -p "require('./data/db-manifest.json').hash")
-            if [ "$DB_HASH" != "$MANIFEST_HASH" ]; then
-              echo "ERROR: manifest hash does not match DB: $DB_HASH != $MANIFEST_HASH"
-              exit 1
-            fi
-            echo "✅ Hash verified: $DB_HASH"
-
-            DB_VERSION=$(node -p "require('./data/db-manifest.json').version")
-            echo "Generated DB Manifest Version: $DB_VERSION"
-
-            cp ./data/mcmodding-docs.db release-artifacts/mcmodding-docs.db
-            cp data/db-manifest.json release-artifacts/db-manifest.json
+          else
+            echo "⚠️  No previous release found."
           fi
+
+          # Fallback for initial repository setup / fresh builds with no prior releases:
+          # Triggers full documentation re-crawl with embeddings generation (index-docs includes --sitemap --embeddings).
+          # Runs with 8GB heap allocation matching the weekly update workflow.
+          if [ ! -f ./data/mcmodding-docs.db ]; then
+            echo "🔨 No prior release database found. Running initial full documentation crawl & embeddings generation..."
+            NODE_OPTIONS="--max-old-space-size=8192" pnpm run index-docs -- --sitemap
+          fi
+
+          echo "Downloaded/Prepared: $(ls -lh ./data/mcmodding-docs.db)"
+
+          echo "📋 Generating manifest with --db-path ./data/mcmodding-docs.db ..."
+          pnpm run db:manifest -- \
+            --bump patch \
+            --changelog "Release $RELEASE_TAG" \
+            --release-tag "$RELEASE_TAG" \
+            --db-path ./data/mcmodding-docs.db
+
+          # Hard verification: fail CI if the manifest hash does not match the DB
+          DB_HASH=$(sha256sum ./data/mcmodding-docs.db | cut -d' ' -f1)
+          MANIFEST_HASH=$(node -p "require('./data/db-manifest.json').hash")
+          if [ "$DB_HASH" != "$MANIFEST_HASH" ]; then
+            echo "ERROR: manifest hash does not match DB: $DB_HASH != $MANIFEST_HASH"
+            exit 1
+          fi
+          echo "✅ Hash verified: $DB_HASH"
+
+          DB_VERSION=$(node -p "require('./data/db-manifest.json').version")
+          echo "Generated DB Manifest Version: $DB_VERSION"
+
+          cp ./data/mcmodding-docs.db release-artifacts/mcmodding-docs.db
+          cp data/db-manifest.json release-artifacts/db-manifest.json
+          zstd --ultra -20 -T0 --long=29 release-artifacts/mcmodding-docs.db -o release-artifacts/mcmodding-docs.db.zst
 
           echo "📦 Release artifacts:"
           ls -lh release-artifacts/
@@ -155,11 +166,13 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.RELEASE_TAG }}
-          fail_on_unmatched_files: false
+          fail_on_unmatched_files: true
           files: |
             release-artifacts/mcmodding-docs.db
+            release-artifacts/mcmodding-docs.db.zst
             release-artifacts/db-manifest.json
             release-artifacts/parchment-mappings.db
+            release-artifacts/parchment-mappings.db.zst
             release-artifacts/parchment-mappings-manifest.json
           append_body: true
           body: |
@@ -171,11 +184,13 @@ jobs:
             | File | Description |
             |------|-------------|
             | `mcmodding-docs.db` | Complete documentation index with semantic embeddings |
+            | `mcmodding-docs.db.zst` | ZSTD compressed documentation index |
             | `db-manifest.json` | Version manifest with SHA256 hash verification |
             | `parchment-mappings.db` | Parchment mappings database for Minecraft class/method names |
+            | `parchment-mappings.db.zst` | ZSTD compressed Parchment mappings database |
             | `parchment-mappings-manifest.json` | Mappings version manifest with SHA256 hash verification |
 
-            **Auto-Update:** The MCP will automatically detect and download these databases on next startup.
+            **Auto-Update:** The MCP will automatically detect and stream-download these compressed databases on next startup.
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -198,9 +213,9 @@ jobs:
           echo "| Mappings | ✅ Uploaded |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
-          echo "- \`mcmodding-docs.db\` - Documentation index" >> $GITHUB_STEP_SUMMARY
+          echo "- \`mcmodding-docs.db\` / \`mcmodding-docs.db.zst\` - Documentation index" >> $GITHUB_STEP_SUMMARY
           echo "- \`db-manifest.json\` - Documentation version manifest" >> $GITHUB_STEP_SUMMARY
-          echo "- \`parchment-mappings.db\` - Parchment mappings database" >> $GITHUB_STEP_SUMMARY
+          echo "- \`parchment-mappings.db\` / \`parchment-mappings.db.zst\` - Parchment mappings database" >> $GITHUB_STEP_SUMMARY
           echo "- \`parchment-mappings-manifest.json\` - Mappings version manifest" >> $GITHUB_STEP_SUMMARY
 
   # Sync prod back to dev after release

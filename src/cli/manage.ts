@@ -3,8 +3,10 @@
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
+import crypto from 'crypto';
 import readline from 'readline';
 import { getDefaultDataDir } from '../data-dir.js';
+import { createZstdDecompressStream, isNativeZstdSupported } from '../utils/zstd-stream.js';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CONFIGURATION
@@ -255,6 +257,19 @@ async function fetchJson(url: string): Promise<unknown> {
   });
 }
 
+/**
+ * Calculate the SHA256 hash of a file (streaming, safe for large files).
+ */
+export async function calculateFileHash(filePath: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash('sha256');
+    const stream = fs.createReadStream(filePath);
+    stream.on('data', (data) => hash.update(data));
+    stream.on('end', () => resolve(hash.digest('hex')));
+    stream.on('error', reject);
+  });
+}
+
 async function downloadFile(
   url: string,
   destPath: string,
@@ -284,25 +299,46 @@ async function downloadFile(
 
         const totalSize = parseInt(res.headers['content-length'] || '0', 10);
         let downloadedSize = 0;
+        const isCompressed = url.includes('.zst');
 
-        res.on('data', (chunk: Buffer) => {
-          downloadedSize += chunk.length;
-          file.write(chunk);
+        if (isCompressed) {
+          const decompressor = createZstdDecompressStream();
+          const onError = (err: Error) => {
+            file.close();
+            fs.unlink(destPath, () => {});
+            reject(err);
+          };
+          res.on('data', (chunk: Buffer) => {
+            downloadedSize += chunk.length;
+            if (onProgress) {
+              onProgress(downloadedSize, totalSize);
+            }
+          });
+          res.on('error', onError);
+          decompressor.on('error', onError);
+          file.on('error', onError);
+          res.pipe(decompressor).pipe(file);
+          file.on('finish', () => resolve());
+        } else {
+          res.on('data', (chunk: Buffer) => {
+            downloadedSize += chunk.length;
+            file.write(chunk);
 
-          if (onProgress) {
-            onProgress(downloadedSize, totalSize);
-          }
-        });
+            if (onProgress) {
+              onProgress(downloadedSize, totalSize);
+            }
+          });
 
-        res.on('end', () => {
-          file.end();
-          resolve();
-        });
+          res.on('end', () => {
+            file.end();
+            resolve();
+          });
 
-        res.on('error', (err) => {
-          fs.unlink(destPath, () => {});
-          reject(err);
-        });
+          res.on('error', (err) => {
+            fs.unlink(destPath, () => {});
+            reject(err);
+          });
+        }
       })
       .on('error', (err) => {
         fs.unlink(destPath, () => {});
@@ -404,28 +440,53 @@ function downloadFileInteractive(
 
         const totalSize = parseInt(res.headers['content-length'] || '0', 10);
         let downloadedSize = 0;
+        const isCompressed = requestUrl.includes('.zst');
 
-        res.on('data', (chunk: Buffer) => {
-          if (progress.cancelled) return;
+        if (isCompressed) {
+          const decompressor = createZstdDecompressStream();
+          const onError = (err: Error) => {
+            cleanup();
+            fs.unlink(destPath, () => {});
+            reject(err);
+          };
+          res.on('data', (chunk: Buffer) => {
+            if (progress.cancelled) return;
+            downloadedSize += chunk.length;
+            progress.update(downloadedSize, totalSize);
+          });
+          res.on('error', onError);
+          decompressor.on('error', onError);
+          file.on('error', onError);
+          res.pipe(decompressor).pipe(file);
+          file.on('finish', () => {
+            cleanup();
+            if (!progress.cancelled) {
+              resolve();
+            }
+          });
+        } else {
+          res.on('data', (chunk: Buffer) => {
+            if (progress.cancelled) return;
 
-          downloadedSize += chunk.length;
-          file.write(chunk);
-          progress.update(downloadedSize, totalSize);
-        });
+            downloadedSize += chunk.length;
+            file.write(chunk);
+            progress.update(downloadedSize, totalSize);
+          });
 
-        res.on('end', () => {
-          file.end();
-          cleanup();
-          if (!progress.cancelled) {
-            resolve();
-          }
-        });
+          res.on('end', () => {
+            file.end();
+            cleanup();
+            if (!progress.cancelled) {
+              resolve();
+            }
+          });
 
-        res.on('error', (err) => {
-          cleanup();
-          fs.unlink(destPath, () => {});
-          reject(err);
-        });
+          res.on('error', (err) => {
+            cleanup();
+            fs.unlink(destPath, () => {});
+            reject(err);
+          });
+        }
       });
 
       req.on('error', (err) => {
@@ -710,8 +771,11 @@ async function getRemoteVersion(dbConfig: OptionalDb): Promise<RemoteInfo | null
         continue;
       }
 
-      // Find assets
-      const dbAsset = release.assets.find((a) => a.name === dbConfig.fileName);
+      // Find assets: prefer compressed (.db.zst) if native zstd is supported, otherwise uncompressed (.db)
+      const zstAsset = isNativeZstdSupported()
+        ? release.assets.find((a) => a.name === `${dbConfig.fileName}.zst`)
+        : undefined;
+      const dbAsset = zstAsset || release.assets.find((a) => a.name === dbConfig.fileName);
 
       // Skip releases that don't have the required database asset
       if (!dbAsset) {
@@ -956,6 +1020,18 @@ export async function runInstaller() {
     }
 
     try {
+      // Fetch the manifest up front so we can verify the downloaded file's
+      // integrity before installing it (the manifest hash is always the hash
+      // of the uncompressed database, for both .db and .db.zst assets).
+      let manifestData: { hash?: string } | null = null;
+      if (item.remoteInfo.manifestUrl) {
+        try {
+          manifestData = (await fetchJson(item.remoteInfo.manifestUrl)) as { hash?: string };
+        } catch {
+          manifestData = null;
+        }
+      }
+
       // Download DB to temp file first
       const progress = new ProgressDisplay(`Downloading ${item.fileName}`);
       console.log(); // Space for progress bar
@@ -976,16 +1052,39 @@ export async function runInstaller() {
         throw err;
       }
 
+      // Verify integrity before installing (catches truncated or corrupted
+      // downloads, including silently-truncated zstd frames)
+      const expectedHash = manifestData?.hash;
+      if (expectedHash) {
+        console.log(`${c.dim}   Verifying integrity...${c.reset}`);
+        const actualHash = await calculateFileHash(tempDbPath);
+        if (actualHash !== expectedHash) {
+          if (fs.existsSync(tempDbPath)) {
+            fs.unlinkSync(tempDbPath);
+          }
+          console.error(
+            `${c.red}${sym.cross} Hash mismatch for ${item.fileName}: expected ${expectedHash}, got ${actualHash}${c.reset}`
+          );
+          failCount++;
+          continue;
+        }
+        console.log(`${c.dim}   ${sym.check} Integrity verified${c.reset}`);
+      }
+
       // Move temp file to final location (atomic on most systems)
       if (fs.existsSync(destDbPath)) {
         fs.unlinkSync(destDbPath);
       }
       fs.renameSync(tempDbPath, destDbPath);
 
-      // Download Manifest (if available)
+      // Save manifest (reuse the one we fetched for verification when possible)
       if (item.remoteInfo.manifestUrl) {
-        console.log(`${c.dim}   Fetching manifest...${c.reset}`);
-        await downloadFile(item.remoteInfo.manifestUrl, destManifestPath);
+        if (manifestData) {
+          fs.writeFileSync(destManifestPath, JSON.stringify(manifestData, null, 2));
+        } else {
+          console.log(`${c.dim}   Fetching manifest...${c.reset}`);
+          await downloadFile(item.remoteInfo.manifestUrl, destManifestPath);
+        }
       } else {
         // Create minimal manifest if missing
         const minimalManifest = {

@@ -6,6 +6,42 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 
+// Mock the transformers.js pipeline so no test ever downloads or runs the
+// embedding model. On a fresh CI runner the ~20 MB all-MiniLM-L6-v2 model is
+// re-downloaded (and re-inferred) per slow test, which made these tests
+// network-dependent and flaky. The fake returns a fixed 384-dim vector
+// (all-MiniLM-L6-v2's dimensionality), keeping the real service/store code
+// under test while removing the external dependency.
+vi.mock('@xenova/transformers', () => ({
+  pipeline: vi.fn(() => () => ({ data: new Float32Array(384).fill(0.01) })),
+  env: { allowLocalModels: true, allowRemoteModels: true },
+}));
+
+// Stub the embedding-heavy store methods (batched cosine scoring over the
+// full ~240k-embedding production DB takes minutes per call, and the
+// fire-and-forget "should not throw" tests below trigger many of them in the
+// background). Everything else — schema, FTS queries, document search —
+// stays real, so the services are still exercised end to end.
+vi.mock('./indexer/store.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./indexer/store.js')>();
+  return {
+    ...actual,
+    DocumentStore: class extends actual.DocumentStore {
+      getEmbeddingCount() {
+        return 0;
+      }
+
+      getEmbeddingsBatch() {
+        return [];
+      }
+
+      findSimilarChunks() {
+        return [];
+      }
+    },
+  };
+});
+
 // ============================================================================
 // DbVersioning Tests
 // ============================================================================
@@ -356,7 +392,7 @@ describe('handleExplainConcept', () => {
           'max 100 characters'
         );
       }
-    }, 120000);
+    });
   });
 });
 
@@ -617,7 +653,7 @@ describe('Edge Cases', () => {
       const result = await handleExplainConcept({ concept: '日本語' });
       // Should not throw, validation should pass
       expect(result).toBeDefined();
-    }, 120000);
+    });
 
     it('should handle emoji in query', () => {
       const result = handleSearchDocs({ query: '🎮 minecraft' });
@@ -713,7 +749,7 @@ describe('Tool Response Format', () => {
 
       expect(result).toHaveProperty('content');
       expect(Array.isArray(result.content)).toBe(true);
-    }, 120000); // 2 minutes - embedding model init is slow in CI
+    });
 
     it('getMinecraftVersion should return valid CallToolResult', () => {
       const result = handleGetMinecraftVersion({});

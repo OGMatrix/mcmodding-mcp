@@ -109,6 +109,14 @@ jobs:
       # UPLOAD AND COMMIT
       # ═══════════════════════════════════════════════════════════════════════════
 
+      - name: Compress Database Assets
+        run: |
+          echo "Compressing database assets with zstd..."
+          zstd --ultra -20 -T0 --long=29 data/mcmodding-docs.db -o data/mcmodding-docs.db.zst
+          zstd --ultra -20 -T0 --long=29 data/parchment-mappings.db -o data/parchment-mappings.db.zst
+          echo "Docs DB compressed: $(ls -lh data/mcmodding-docs.db.zst)"
+          echo "Mappings DB compressed: $(ls -lh data/parchment-mappings.db.zst)"
+
       - name: Update Release Assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -116,9 +124,9 @@ jobs:
         run: |
           echo "Uploading database assets to release $TAG..."
           # Upload documentation database
-          gh release upload "$TAG" data/mcmodding-docs.db data/db-manifest.json --clobber
+          gh release upload "$TAG" data/mcmodding-docs.db data/mcmodding-docs.db.zst data/db-manifest.json --clobber
           # Upload mappings database
-          gh release upload "$TAG" data/parchment-mappings.db data/parchment-mappings-manifest.json --clobber
+          gh release upload "$TAG" data/parchment-mappings.db data/parchment-mappings.db.zst data/parchment-mappings-manifest.json --clobber
 
       - name: Log summary
         if: always()
